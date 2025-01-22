@@ -2,7 +2,7 @@
  * Global stagger delay between shapes (in milliseconds).
  * Adjust as desired.
  */
-const STAGGER_DELAY = 1000;
+const STAGGER_DELAY = 800;
 
 /**
  * Global delay remaining. If > 0, new shapes must wait that many ms.
