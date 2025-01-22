@@ -1,44 +1,70 @@
 /**
- * Global stagger delay between shapes (in milliseconds).
- * Adjust as desired.
+ * Delay (in ms) between each shape's start in the staggered sequence
  */
 const STAGGER_DELAY = 800;
 
 /**
- * Global delay remaining. If > 0, new shapes must wait that many ms.
+ * Initialize IntersectionObserver-based animations for multiple shapes.
+ *
+ * @param {Array} shapeConfigs
+ * @param {number} [threshold=0.5]
+ * @param {boolean} [debug=false] 
  */
-let globalDelay = 0;
-
-/**
- * So we can cancel/replace the timeout that resets `globalDelay`.
- */
-let globalTimeoutId = null;
-
-/**
- * Initialize shape observer for multiple shapes, each with:
- *   {
- *     containerId: string,
- *     svgUrl: string,
- *     vivusOptions: object,
- *     vivusInstance: null,   // set after fetching
- *     isAnimated: false,     // becomes true once played
- *     isIntersecting: false  // updated by IntersectionObserver
- *   }
- * 
- * @param {Array} shapeConfigs 
- * @param {number} [threshold=0.5] Intersection threshold (0 to 1)
- * @param {boolean} [debug=false] If true, logs debug info to console
- */
-function initShapeObserver(shapeConfigs, threshold = 0.5, debug = true) {
+function initShapeObserver(shapeConfigs, threshold = 0.5, debug = false) {
   if (debug) console.log('[initShapeObserver] Starting setup...');
 
-  // 1) Fetch each SVG, create Vivus instance (start: manual)
+  const observer = new IntersectionObserver((entries, obs) => {
+    if (debug) console.log('[IntersectionObserver] Callback triggered.');
+
+    entries.forEach(entry => {
+      const config = shapeConfigs.find(cfg => {
+        const c = document.getElementById(cfg.containerId);
+        return c === entry.target;
+      });
+      if (!config) return;
+
+      config.isIntersecting = entry.isIntersecting;
+      if (debug) {
+        console.log(
+          `[IntersectionObserver] ${config.containerId} isIntersecting:`,
+          config.isIntersecting
+        );
+      }
+    });
+
+    // Check if all are in view & none animated
+    const allInView = shapeConfigs.every(cfg => cfg.isIntersecting);
+    const noneAnimated = !shapeConfigs.some(cfg => cfg.isAnimated);
+
+    if (allInView && noneAnimated) {
+      // Staggered animation across all shapes
+      if (debug) console.log('[IntersectionObserver] All in view => Staggered animation.');
+      doStaggeredAnimation(shapeConfigs, obs, debug);
+    } else {
+      // Otherwise animate individually
+      shapeConfigs.forEach(cfg => {
+        if (cfg.isIntersecting && !cfg.isAnimated && cfg.vivusInstance) {
+          if (debug) {
+            console.log(`[IntersectionObserver] Attempt animate: ${cfg.containerId}`);
+          }
+          triggerShapeAnimation(cfg, 0, debug);
+        }
+      });
+    }
+  }, { threshold });
+
+  // For each shape, fetch & inject the SVG, create Vivus, then observe
   shapeConfigs.forEach(cfg => {
     const container = document.getElementById(cfg.containerId);
     if (!container) {
       console.error('[initShapeObserver] Container not found:', cfg.containerId);
       return;
     }
+
+    if (debug) {
+      console.log(`[initShapeObserver] Fetching SVG for ${cfg.containerId}: ${cfg.svgUrl}`);
+    }
+
     fetch(cfg.svgUrl)
       .then(resp => {
         if (!resp.ok) {
@@ -47,15 +73,14 @@ function initShapeObserver(shapeConfigs, threshold = 0.5, debug = true) {
         return resp.text();
       })
       .then(svgText => {
-        // Inject the SVG
         container.innerHTML = svgText;
         const svgElem = container.querySelector('svg');
-        if (!svgElem) throw new Error('No <svg> in fetched content.');
+        if (!svgElem) throw new Error('[initShapeObserver] No <svg> found in fetched content.');
 
-        // Convert shapes to <path> for Vivus
+        // Convert shapes
         new Pathformer(svgElem);
 
-        // Create Vivus instance, but don't auto-play
+        // Create Vivus instance
         cfg.vivusInstance = new Vivus(svgElem, {
           ...cfg.vivusOptions,
           start: 'manual'
@@ -63,84 +88,63 @@ function initShapeObserver(shapeConfigs, threshold = 0.5, debug = true) {
         if (debug) {
           console.log(`[initShapeObserver] Created Vivus instance for ${cfg.containerId}`);
         }
+
+        // *** Now that the container has content, let's observe it ***
+        observer.observe(container);
+        if (debug) {
+          console.log(`[initShapeObserver] Observing ${cfg.containerId} AFTER injection`);
+        }
       })
       .catch(err => console.error('[initShapeObserver] Error loading SVG:', err));
-  });
-
-  // 2) IntersectionObserver: watch all containers
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const cfg = shapeConfigs.find(sc => {
-        const el = document.getElementById(sc.containerId);
-        return el === entry.target;
-      });
-      if (cfg) {
-        cfg.isIntersecting = entry.isIntersecting;
-
-        // If visible AND not animated, try to animate
-        if (cfg.isIntersecting && !cfg.isAnimated && cfg.vivusInstance) {
-          if (debug) console.log(`[IntersectionObserver] Attempt animate: ${cfg.containerId}`);
-          triggerShapeAnimation(cfg, debug);
-        }
-      }
-    });
-  }, { threshold });
-
-  // 3) Attach observer to each container
-  shapeConfigs.forEach(cfg => {
-    const container = document.getElementById(cfg.containerId);
-    if (container) observer.observe(container);
-    if (debug) console.log('[initShapeObserver] Observing', cfg.containerId);
   });
 }
 
 /**
- * Handles the logic for playing a shape's animation, taking into account
- * the global delay. If globalDelay > 0, it waits that many ms before playing
- * (and extends the global delay). If globalDelay=0, it plays immediately.
- * 
- * @param {Object} cfg - shape config (must have vivusInstance)
- * @param {boolean} debug 
+ * Stagger all shapes in the array (the order is the array order).
+ * Once triggered, unobserve them so they aren't re-triggered.
  */
-function triggerShapeAnimation(cfg, debug) {
-  if (!cfg.vivusInstance) return;
-
-  if (globalDelay > 0) {
-    // Delay is still active => schedule shape after that remainder
+function doStaggeredAnimation(shapeConfigs, observer, debug) {
+  let delayAccumulator = 0;
+  shapeConfigs.forEach(cfg => {
+    if (!cfg.vivusInstance) return;
     if (debug) {
-      console.log(`[triggerShapeAnimation] ${cfg.containerId} waiting ${globalDelay}ms`);
+      console.log(`[doStaggeredAnimation] Scheduling ${cfg.containerId} at +${delayAccumulator}ms.`);
     }
-    setTimeout(() => {
-      cfg.vivusInstance.play();
-      cfg.isAnimated = true;
-      if (debug) console.log(`[triggerShapeAnimation] Now animating ${cfg.containerId}`);
-    }, globalDelay);
+    triggerShapeAnimation(cfg, delayAccumulator, debug);
+    delayAccumulator += STAGGER_DELAY;
+  });
 
-    // Extend the global delay by STAGGER_DELAY
-    globalDelay += STAGGER_DELAY;
+  // Unobserve all
+  shapeConfigs.forEach(cfg => {
+    const c = document.getElementById(cfg.containerId);
+    if (c) observer.unobserve(c);
+  });
+}
 
-  } else {
-    // No delay => animate now
+/**
+ * Actually start the shape's animation after the specified delay.
+ */
+function triggerShapeAnimation(cfg, delayMs, debug) {
+  if (cfg.isAnimated) return; // Already played
+
+  if (delayMs === 0) {
+    // Animate right away
     if (debug) {
       console.log(`[triggerShapeAnimation] ${cfg.containerId} animates immediately`);
     }
     cfg.vivusInstance.play();
     cfg.isAnimated = true;
-
-    // Set global delay for the next shape
-    globalDelay = STAGGER_DELAY;
+  } else {
+    // Animate after a delay
+    if (debug) {
+      console.log(`[triggerShapeAnimation] ${cfg.containerId} waiting ${delayMs}ms`);
+    }
+    setTimeout(() => {
+      cfg.vivusInstance.play();
+      cfg.isAnimated = true;
+      if (debug) {
+        console.log(`[triggerShapeAnimation] Now animating ${cfg.containerId}`);
+      }
+    }, delayMs);
   }
-
-  // Reset the existing timer (if any) so we can push it out
-  if (globalTimeoutId) {
-    clearTimeout(globalTimeoutId);
-    globalTimeoutId = null;
-  }
-
-  // Create new timer to set the delay back to 0 after the new globalDelay
-  globalTimeoutId = setTimeout(() => {
-    if (debug) console.log('[triggerShapeAnimation] globalDelay reset to 0');
-    globalDelay = 0;
-    globalTimeoutId = null;
-  }, globalDelay);
 }
