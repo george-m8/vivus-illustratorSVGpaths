@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vivus Stagger & Individual Demo</title>
+  
+  <!-- Vivus & Pathformer (CDN or local) -->
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/src/pathformer.js"></script>
+  
+  <!-- Our custom code with the refined logic -->
+  <script src="js/vivusObserver.js"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      font-family: sans-serif;
+      /* Make enough space to demonstrate scroll/visibility changes */
+       
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    .svgRow {
+      display: flex;
+      flex-direction: column;
+      
+      margin-top: 700px; /* so we have to scroll down */
+    }
+    .svgContainer {
+      width: 300px;
+      max-width: 100%;
+      margin: 0 15px;
+    }
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<div style="height:200vh"></div>
+  <div class="svgRow">
+    <div id="playShapeContainer" class="svgContainer"></div>
+    <div id="eventsShapeContainer" class="svgContainer"></div>
+    <div id="consultShapeContainer" class="svgContainer"></div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const shapes = [
+        {
+          containerId: 'playShapeContainer',
+          svgUrl: 'svgs/play.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 120, animTimingFunction: Vivus.EASE },
+          vivusInstance: null,
+          isAnimated: false,
+          isIntersecting: false
+        },
+        {
+          containerId: 'eventsShapeContainer',
+          svgUrl: 'svgs/events.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 120, animTimingFunction: Vivus.EASE },
+          vivusInstance: null,
+          isAnimated: false,
+          isIntersecting: false
+        },
+        {
+          containerId: 'consultShapeContainer',
+          svgUrl: 'svgs/consult.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 120, animTimingFunction: Vivus.EASE },
+          vivusInstance: null,
+          isAnimated: false,
+          isIntersecting: false
+        }
+      ];
+
+      initShapeObserver(shapes, 0.5); // 50% visible threshold
+    });
+  </script>
+</body>
+</html>
