@@ -50,6 +50,6 @@ I've created this for use on a webflow site. By including the required code in a
     });
   </script>
 ```
-## To Do
-- Fixed observer not observing already in viewport items, but this has introduced bug where the delay doesn't take effect.
-- Observer should stop observing after animation.
+## Issues
+**Issue:** When using multiple svgs, styling conflicts
+**Fix:** This is due to matching class names. I've fixed this by prepending class names with the unique file name.

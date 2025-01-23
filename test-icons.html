@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vivus Stagger & Individual Demo</title>
+  
+  <!-- Vivus & Pathformer (CDN or local) -->
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/src/pathformer.js"></script>
+  
+  <!-- Our custom code with the refined logic -->
+  <script src="js/vivusObserver.js"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      font-family: sans-serif;
+      /* Make enough space to demonstrate scroll/visibility changes */
+       
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    h2{
+      text-align: center;
+      color:white;
+    }
+    .svgRow {
+      display: flex;
+      flex-direction: column;
+      
+      /*margin-top: 700px; /* so we have to scroll down */
+    }
+    .svgContainer {
+      width: 300px;
+      max-width: 100%;
+      margin: 100px 15px;
+    }
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<!--<div style="height:200vh"></div>-->
+  <div class="svgRow">
+    <h2>play.svg</h2>
+    <div id="playShapeContainer" class="svgContainer"></div>
+    <h2>events.svg</h2>
+    <div id="eventsShapeContainer" class="svgContainer"></div>
+    <h2>consult.svg</h2>
+    <div id="consultShapeContainer" class="svgContainer"></div>
+    <h2>book.svg</h2>
+    <div id="bookShapeContainer" class="svgContainer"></div>
+    <h2>book-alt.svg</h2>
+    <div id="book-altShapeContainer" class="svgContainer"></div>
+    <h2>business.svg</h2>
+    <div id="businessShapeContainer" class="svgContainer"></div>
+    <h2>contact-black.svg</h2>
+    <div id="contact-blackShapeContainer" class="svgContainer"></div>
+    <h2>contact.svg</h2>
+    <div id="contactShapeContainer" class="svgContainer"></div>
+    <h2>dh-logo.svg</h2>
+    <div id="dh-logoShapeContainer" class="svgContainer"></div>
+    <h2>event-black.svg</h2>
+    <div id="event-blackShapeContainer" class="svgContainer"></div>
+    <h2>event.svg</h2>
+    <div id="eventShapeContainer" class="svgContainer"></div>
+    <h2>interviewer-black.svg</h2>
+    <div id="interviewer-blackShapeContainer" class="svgContainer"></div>
+    <h2>interviewer.svg</h2>
+    <div id="interviewerShapeContainer" class="svgContainer"></div>
+
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const shapes = [
+        {
+          containerId: 'playShapeContainer',
+          svgUrl: 'svgs/play.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'eventsShapeContainer',
+          svgUrl: 'svgs/events.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'consultShapeContainer',
+          svgUrl: 'svgs/consult.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'book-altShapeContainer',
+          svgUrl: 'svgs/book-alt.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'bookShapeContainer',
+          svgUrl: 'svgs/book.svg',//not working-shows only one central yellow line.
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'businessShapeContainer',
+          svgUrl: 'svgs/business.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'contact-blackShapeContainer',
+          svgUrl: 'svgs/contact-black.svg',//shows yellow
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'contactShapeContainer',
+          svgUrl: 'svgs/contact.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'dh-logoShapeContainer',
+          svgUrl: 'svgs/dh-logo.svg',// doesn't show all lines, maybe css issue?
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'event-blackShapeContainer',
+          svgUrl: 'svgs/event-black.svg',//colours incorrect
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'eventShapeContainer',
+          svgUrl: 'svgs/event.svg',// same as above, mic head is trans white
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'interviewer-blackShapeContainer',
+          svgUrl: 'svgs/interviewer-black.svg',//not black
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'interviewerShapeContainer',
+          svgUrl: 'svgs/interviewer.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        }
+      ];
+      
+      // Initialize the observer with threshold=0.5, debug=true
+      initGlobalStaggerObserver(shapes, 0.5, true);
+    });
+  </script>
+</body>
+</html>
