@@ -25,29 +25,31 @@ I've created this for use on a webflow site. By including the required code in a
         {
           containerId: 'playShapeContainer',
           svgUrl: 'svgs/play.svg',
-          vivusOptions: { type: 'scenario-sync', duration: 120, animTimingFunction: Vivus.EASE },
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
           vivusInstance: null,
-          isAnimated: false,
-          isIntersecting: false
+          isAnimated: false
         },
         {
           containerId: 'eventsShapeContainer',
           svgUrl: 'svgs/events.svg',
-          vivusOptions: { type: 'scenario-sync', duration: 120, animTimingFunction: Vivus.EASE },
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
           vivusInstance: null,
-          isAnimated: false,
-          isIntersecting: false
+          isAnimated: false
         },
         {
           containerId: 'consultShapeContainer',
           svgUrl: 'svgs/consult.svg',
-          vivusOptions: { type: 'scenario-sync', duration: 120, animTimingFunction: Vivus.EASE },
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
           vivusInstance: null,
-          isAnimated: false,
-          isIntersecting: false
+          isAnimated: false
         }
       ];
-
-      initShapeObserver(shapes, 0.5); // 50% visible threshold
+      
+      // Initialize the observer with threshold=0.5, debug=true
+      initGlobalStaggerObserver(shapes, 0.5, true);
     });
   </script>
+```
+## To Do
+- Fixed observer not observing already in viewport items, but this has introduced bug where the delay doesn't take effect.
+- Observer should stop observing after animation.

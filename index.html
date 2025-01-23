@@ -26,9 +26,9 @@
     }
     .svgRow {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       
-      margin-top: 700px; /* so we have to scroll down */
+      /*margin-top: 700px; /* so we have to scroll down */
     }
     .svgContainer {
       width: 300px;
@@ -56,30 +56,28 @@
         {
           containerId: 'playShapeContainer',
           svgUrl: 'svgs/play.svg',
-          vivusOptions: { type: 'scenario-sync', duration: 36, animTimingFunction: Vivus.EASE },
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
           vivusInstance: null,
-          isAnimated: false,
-          isIntersecting: false
+          isAnimated: false
         },
         {
           containerId: 'eventsShapeContainer',
           svgUrl: 'svgs/events.svg',
-          vivusOptions: { type: 'scenario-sync', duration: 36, animTimingFunction: Vivus.EASE },
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
           vivusInstance: null,
-          isAnimated: false,
-          isIntersecting: false
+          isAnimated: false
         },
         {
           containerId: 'consultShapeContainer',
           svgUrl: 'svgs/consult.svg',
-          vivusOptions: { type: 'scenario-sync', duration: 36, animTimingFunction: Vivus.EASE },
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
           vivusInstance: null,
-          isAnimated: false,
-          isIntersecting: false
+          isAnimated: false
         }
       ];
-
-      initShapeObserver(shapes, 0.5); // 50% visible threshold
+      
+      // Initialize the observer with threshold=0.5, debug=true
+      initGlobalStaggerObserver(shapes, 0.5, true);
     });
   </script>
 </body>
