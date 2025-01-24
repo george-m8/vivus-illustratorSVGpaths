@@ -29,5 +29,5 @@
       // Initialize the observer with threshold=0.5, debug=true
       initGlobalStaggerObserver(shapes, 0.5, true);
     });
-  </script>
+</script>
 ```
