@@ -57,3 +57,6 @@ I've created this for use on a webflow site. By including the required code in a
 ```bash
 python3 process_svg.py ./svgs
 ```
+
+**Issue:** SVG paths animate in the incorrect order.
+**Fix:** SVGs animate in the order paths are present in the DOM. Either, edit the SVG contents so that your shapes/paths appear in correct order (first to appear is first animated), or rearrange the layers in Illustator (back layers animate before front layers).
