@@ -52,4 +52,8 @@ I've created this for use on a webflow site. By including the required code in a
 ```
 ## Issues
 **Issue:** When using multiple svgs, styling conflicts
-**Fix:** This is due to matching class names. I've fixed this by prepending class names with the unique file name.
+**Fix:** This is due to matching class names. Fix manually by renaming classes to be unique to the file. Or, run "process_svg.py" using the file name or directory as argument. The script will prepend all appearances of "cls" with a sanitised file name. This script features logic to skip already process files in a directory.
+**Example:**
+```bash
+python3 process_svg.py ./svgs
+```
