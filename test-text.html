@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vivus Stagger & Individual Demo</title>
+  
+  <!-- Vivus & Pathformer (CDN or local) -->
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/src/pathformer.js"></script>
+  
+  <!-- Our custom code with the refined logic -->
+  <script src="js/vivusObserver.js"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      background: rgb(147, 147, 147);
+      color: white;
+      font-family: sans-serif;
+      /* Make enough space to demonstrate scroll/visibility changes */
+       
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    h2{
+      text-align: center;
+      color:white;
+    }
+    .svgRow {
+      display: flex;
+      flex-direction: column;
+      
+      /*margin-top: 700px; /* so we have to scroll down */
+    }
+    .svgContainer {
+      width: 300px;
+      max-width: 100%;
+      margin: 100px 15px;
+    }
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>  
+    <div class="svgRow">
+        <h2>1numeric.svg</h2>
+        <div id="numeric1ShapeContainer" class="svgContainer"></div>
+        <h2>2numeric.svg</h2>
+        <div id="numeric2ShapeContainer" class="svgContainer"></div>
+        <h2>3numeric.svg</h2>
+        <div id="numeric3ShapeContainer" class="svgContainer"></div>
+        <h2>50k.svg</h2>
+        <div id="fiftykShapeContainer" class="svgContainer"></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const shapes = [
+            {
+              containerId: 'numeric1ShapeContainer',
+              svgUrl: 'svgs/numeric1.svg',
+              vivusOptions: { type: 'scenario-sync', duration: 36 },
+              vivusInstance: null,
+              isAnimated: false
+            },
+            {
+              containerId: 'numeric2ShapeContainer',
+              svgUrl: 'svgs/numeric2.svg',
+              vivusOptions: { type: 'scenario-sync', duration: 36 },
+              vivusInstance: null,
+              isAnimated: false
+            },
+            {
+              containerId: 'numeric3ShapeContainer',
+              svgUrl: 'svgs/numeric3.svg',
+              vivusOptions: { type: 'scenario-sync', duration: 36 },
+              vivusInstance: null,
+              isAnimated: false
+            },
+            {
+              containerId: 'fiftykShapeContainer',
+              svgUrl: 'svgs/fiftyk.svg',
+              vivusOptions: { type: 'scenario-sync', duration: 36 },
+              vivusInstance: null,
+              isAnimated: false
+            }
+          ];
+          
+          // Initialize the observer with threshold=0.5, debug=true
+          initGlobalStaggerObserver(shapes, 0.5, true);
+        });
+      </script>
+</body>
