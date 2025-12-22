@@ -6,6 +6,11 @@ const STAGGER_DELAY = 800;
 const DECAY_TIMEOUT = 800;
 
 /**
+ * DEFAULT_ROTATION_DURATION: default duration (ms) for rotation transitions
+ */
+const DEFAULT_ROTATION_DURATION = 600;
+
+/**
  * initGlobalStaggerObserver
  * 
  * Observes multiple shapes (external SVGs fetched on demand). 
@@ -134,4 +139,165 @@ function initGlobalStaggerObserver(shapeConfigs, threshold = 0.5, debug = false)
       })
       .catch(err => console.error('[initGlobalStaggerObserver] Error:', err));
   });
+}
+
+/**
+ * initRotationControls
+ * 
+ * Enables rotation of SVGs via button/link clicks. The target angle is derived
+ * from the clicked element's ID (e.g., id="270deg" → rotate to 270°).
+ * 
+ * Features:
+ * - Normalizes angles to 0-360° range
+ * - Rotates via shortest path (e.g., 270° to 10° goes via 0°, not backwards through 180°)
+ * - Smooth CSS transitions
+ * 
+ * @param {Array} shapeConfigs - Same shape configs from initGlobalStaggerObserver
+ * @param {string} [controlSelector='[data-rotate-target]'] - CSS selector for rotation controls
+ * @param {number} [duration=DEFAULT_ROTATION_DURATION] - Rotation transition duration (ms)
+ * @param {boolean} [debug=false] - Enable debug logging
+ * 
+ * Usage:
+ * HTML: <button id="90deg" data-rotate-target="playShapeContainer">Rotate to 90°</button>
+ * JS: initRotationControls(shapes, '[data-rotate-target]', 600, true);
+ */
+function initRotationControls(shapeConfigs, controlSelector = '[data-rotate-target]', duration = DEFAULT_ROTATION_DURATION, debug = false) {
+  // Track current rotation angle for each container
+  const rotationState = {};
+  
+  // Initialize rotation state for each shape
+  shapeConfigs.forEach(cfg => {
+    rotationState[cfg.containerId] = {
+      currentAngle: 0,
+      targetAngle: 0
+    };
+  });
+  
+  /**
+   * Normalize angle to 0-360 range
+   */
+  function normalizeAngle(angle) {
+    angle = angle % 360;
+    if (angle < 0) angle += 360;
+    return angle;
+  }
+  
+  /**
+   * Calculate shortest rotation path between two angles
+   * Returns the delta that should be applied
+   */
+  function calculateShortestPath(from, to) {
+    from = normalizeAngle(from);
+    to = normalizeAngle(to);
+    
+    let delta = to - from;
+    
+    // If going the "long way" around, take the short path instead
+    if (delta > 180) {
+      delta -= 360;
+    } else if (delta < -180) {
+      delta += 360;
+    }
+    
+    return delta;
+  }
+  
+  /**
+   * Rotate an SVG to a specific angle
+   */
+  function rotateSVG(containerId, targetAngle, transitionDuration = duration) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+      if (debug) console.error(`[initRotationControls] Container not found: ${containerId}`);
+      return;
+    }
+    
+    const svg = container.querySelector('svg');
+    if (!svg) {
+      if (debug) console.error(`[initRotationControls] No SVG found in: ${containerId}`);
+      return;
+    }
+    
+    const state = rotationState[containerId];
+    if (!state) {
+      if (debug) console.error(`[initRotationControls] No rotation state for: ${containerId}`);
+      return;
+    }
+    
+    // Normalize target angle
+    targetAngle = normalizeAngle(targetAngle);
+    
+    // Calculate shortest path
+    const delta = calculateShortestPath(state.currentAngle, targetAngle);
+    const newAngle = state.currentAngle + delta;
+    
+    if (debug) {
+      console.log(`[initRotationControls] Rotating ${containerId}:`, {
+        from: state.currentAngle,
+        to: targetAngle,
+        delta: delta,
+        newAngle: newAngle
+      });
+    }
+    
+    // Apply transition
+    svg.style.transition = `transform ${transitionDuration}ms ease-in-out`;
+    svg.style.transformOrigin = 'center center';
+    svg.style.transform = `rotate(${newAngle}deg)`;
+    
+    // Update state - store the actual rotation value (may exceed 360)
+    // but keep targetAngle normalized for future calculations
+    state.currentAngle = targetAngle;
+    state.targetAngle = targetAngle;
+  }
+  
+  /**
+   * Parse angle from element ID
+   * Supports formats: "90deg", "180", "270deg", etc.
+   */
+  function parseAngleFromId(id) {
+    if (!id) return null;
+    
+    // Remove "deg" suffix if present and parse number
+    const match = id.match(/^(-?\d+(?:\.\d+)?)(deg)?$/);
+    if (match) {
+      return parseFloat(match[1]);
+    }
+    
+    return null;
+  }
+  
+  // Set up event listeners for rotation controls
+  document.addEventListener('click', function(event) {
+    const control = event.target.closest(controlSelector);
+    if (!control) return;
+    
+    event.preventDefault();
+    
+    const targetContainerId = control.dataset.rotateTarget || control.getAttribute('data-rotate-target');
+    const angle = parseAngleFromId(control.id);
+    
+    if (!targetContainerId) {
+      if (debug) console.warn('[initRotationControls] No data-rotate-target specified on control:', control);
+      return;
+    }
+    
+    if (angle === null) {
+      if (debug) console.warn('[initRotationControls] Could not parse angle from ID:', control.id);
+      return;
+    }
+    
+    rotateSVG(targetContainerId, angle);
+  });
+  
+  if (debug) {
+    console.log('[initRotationControls] Initialized with selector:', controlSelector);
+  }
+  
+  // Return API for programmatic rotation
+  return {
+    rotateSVG: rotateSVG,
+    getRotationState: (containerId) => rotationState[containerId],
+    normalizeAngle: normalizeAngle
+  };
 }

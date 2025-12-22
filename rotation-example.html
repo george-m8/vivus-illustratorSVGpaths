@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simple Rotation Example</title>
+  
+  <!-- Vivus & Pathformer -->
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/src/pathformer.js"></script>
+  <script src="js/vivusObserver.js"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: #1a1a1a;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+    }
+    
+    .svgContainer {
+      width: 300px;
+      margin: 40px auto;
+    }
+    
+    svg {
+      width: 100%;
+      height: auto;
+    }
+    
+    button {
+      padding: 12px 24px;
+      margin: 5px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    button:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Simple Rotation Example</h1>
+  
+  <!-- SVG Container -->
+  <div id="myShape" class="svgContainer"></div>
+  
+  <!-- Rotation Controls -->
+  <div>
+    <button id="0deg" data-rotate-target="myShape">0°</button>
+    <button id="90deg" data-rotate-target="myShape">90°</button>
+    <button id="180deg" data-rotate-target="myShape">180°</button>
+    <button id="270deg" data-rotate-target="myShape">270°</button>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Define your shapes
+      const shapes = [
+        {
+          containerId: 'myShape',
+          svgUrl: 'svgs/play.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        }
+      ];
+      
+      // Initialize animation (existing functionality)
+      initGlobalStaggerObserver(shapes, 0.5, false);
+      
+      // Initialize rotation (new feature)
+      initRotationControls(shapes, '[data-rotate-target]', 600, false);
+    });
+  </script>
+</body>
+</html>

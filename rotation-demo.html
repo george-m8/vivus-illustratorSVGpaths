@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vivus with Rotation Demo</title>
+  
+  <!-- Vivus & Pathformer (CDN or local) -->
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/src/pathformer.js"></script>
+  
+  <!-- Our custom code with the refined logic -->
+  <script src="js/vivusObserver.js"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      background: #1a1a1a;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .demo-section {
+      margin-bottom: 60px;
+      padding: 30px;
+      background: #2a2a2a;
+      border-radius: 12px;
+    }
+    
+    .svgRow {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    
+    .svgContainer {
+      width: 200px;
+      max-width: 100%;
+    }
+    
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    
+    button, a.btn {
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    button:hover, a.btn:hover {
+      background: #45a049;
+    }
+    
+    button:active, a.btn:active {
+      transform: scale(0.98);
+    }
+    
+    .info {
+      text-align: center;
+      color: #aaa;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+    
+    .spacer {
+      height: 100vh;
+    }
+    
+    h2 {
+      margin-top: 0;
+      color: #4CAF50;
+    }
+    
+    .description {
+      color: #ccc;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 Vivus SVG Animation + Rotation Demo</h1>
+    
+    <div class="demo-section">
+      <h2>Demo 1: Single SVG with Rotation Controls</h2>
+      <p class="description">
+        Click the buttons to rotate the SVG to different angles. 
+        Notice how it always takes the shortest path (270° to 10° goes via 0°, not backwards).
+      </p>
+      
+      <div class="svgRow">
+        <div id="playShapeContainer" class="svgContainer"></div>
+      </div>
+      
+      <div class="controls">
+        <button id="0deg" data-rotate-target="playShapeContainer">0°</button>
+        <button id="45deg" data-rotate-target="playShapeContainer">45°</button>
+        <button id="90deg" data-rotate-target="playShapeContainer">90°</button>
+        <button id="135deg" data-rotate-target="playShapeContainer">135°</button>
+        <button id="180deg" data-rotate-target="playShapeContainer">180°</button>
+        <button id="225deg" data-rotate-target="playShapeContainer">225°</button>
+        <button id="270deg" data-rotate-target="playShapeContainer">270°</button>
+        <button id="315deg" data-rotate-target="playShapeContainer">315°</button>
+      </div>
+      
+      <p class="info">Try going from 270° to 10° - it rotates efficiently!</p>
+    </div>
+    
+    <div class="demo-section">
+      <h2>Demo 2: Multiple SVGs with Independent Rotation</h2>
+      <p class="description">
+        Each SVG can be rotated independently. The angles normalize automatically 
+        (e.g., 720° becomes 0°, 450° becomes 90°).
+      </p>
+      
+      <div class="svgRow">
+        <div>
+          <div id="eventsShapeContainer" class="svgContainer"></div>
+          <div class="controls">
+            <button id="0" data-rotate-target="eventsShapeContainer">0°</button>
+            <button id="90" data-rotate-target="eventsShapeContainer">90°</button>
+            <button id="180" data-rotate-target="eventsShapeContainer">180°</button>
+            <button id="270" data-rotate-target="eventsShapeContainer">270°</button>
+          </div>
+        </div>
+        
+        <div>
+          <div id="consultShapeContainer" class="svgContainer"></div>
+          <div class="controls">
+            <button id="45deg-consult" data-rotate-target="consultShapeContainer">45°</button>
+            <button id="135deg-consult" data-rotate-target="consultShapeContainer">135°</button>
+            <button id="225deg-consult" data-rotate-target="consultShapeContainer">225°</button>
+            <button id="315deg-consult" data-rotate-target="consultShapeContainer">315°</button>
+          </div>
+        </div>
+      </div>
+      
+      <p class="info">Note: IDs must contain angle numbers (with or without "deg")</p>
+    </div>
+    
+    <div class="demo-section">
+      <h2>Demo 3: Testing Edge Cases</h2>
+      <p class="description">
+        Test angles over 360° - they normalize automatically. 720° = 0°, 450° = 90°, etc.
+      </p>
+      
+      <div class="svgRow">
+        <div id="testShapeContainer" class="svgContainer"></div>
+      </div>
+      
+      <div class="controls">
+        <button id="360deg" data-rotate-target="testShapeContainer">360° (= 0°)</button>
+        <button id="450deg" data-rotate-target="testShapeContainer">450° (= 90°)</button>
+        <button id="720deg" data-rotate-target="testShapeContainer">720° (= 0°)</button>
+        <button id="-90deg" data-rotate-target="testShapeContainer">-90° (= 270°)</button>
+        <button id="-180deg" data-rotate-target="testShapeContainer">-180° (= 180°)</button>
+      </div>
+      
+      <p class="info">Open console (debug=true) to see rotation calculations</p>
+    </div>
+    
+    <div class="demo-section">
+      <h2>Demo 4: Using Links (not just buttons)</h2>
+      <p class="description">
+        Works with any clickable element, including links with data-rotate-target attribute.
+      </p>
+      
+      <div class="svgRow">
+        <div id="linkShapeContainer" class="svgContainer"></div>
+      </div>
+      
+      <div class="controls">
+        <a href="#" class="btn" id="0deg-link" data-rotate-target="linkShapeContainer">Reset</a>
+        <a href="#" class="btn" id="120deg" data-rotate-target="linkShapeContainer">120°</a>
+        <a href="#" class="btn" id="240deg" data-rotate-target="linkShapeContainer">240°</a>
+      </div>
+    </div>
+    
+    <!-- Spacer to demonstrate scroll-triggered animation -->
+    <div class="spacer"></div>
+    
+    <div class="demo-section">
+      <h2>Demo 5: Scroll-Triggered + Rotation</h2>
+      <p class="description">
+        SVGs still animate on scroll as normal, then can be rotated after drawing.
+      </p>
+      
+      <div class="svgRow">
+        <div id="scrollShapeContainer" class="svgContainer"></div>
+      </div>
+      
+      <div class="controls">
+        <button id="0deg-scroll" data-rotate-target="scrollShapeContainer">0°</button>
+        <button id="90deg-scroll" data-rotate-target="scrollShapeContainer">90°</button>
+        <button id="180deg-scroll" data-rotate-target="scrollShapeContainer">180°</button>
+        <button id="270deg-scroll" data-rotate-target="scrollShapeContainer">270°</button>
+      </div>
+      
+      <p class="info">Scroll up/down to see the original animation trigger</p>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Define all shapes
+      const shapes = [
+        {
+          containerId: 'playShapeContainer',
+          svgUrl: 'svgs/play.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'eventsShapeContainer',
+          svgUrl: 'svgs/events.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'consultShapeContainer',
+          svgUrl: 'svgs/consult.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'testShapeContainer',
+          svgUrl: 'svgs/play.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'linkShapeContainer',
+          svgUrl: 'svgs/events.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        },
+        {
+          containerId: 'scrollShapeContainer',
+          svgUrl: 'svgs/consult.svg',
+          vivusOptions: { type: 'scenario-sync', duration: 36 },
+          vivusInstance: null,
+          isAnimated: false
+        }
+      ];
+      
+      // Initialize the observer with threshold=0.5, debug=true
+      initGlobalStaggerObserver(shapes, 0.5, true);
+      
+      // Initialize rotation controls with debug enabled
+      const rotationAPI = initRotationControls(shapes, '[data-rotate-target]', 600, true);
+      
+      // Make API available globally for testing
+      window.rotationAPI = rotationAPI;
+      
+      console.log('✅ Demo initialized! Try clicking rotation buttons.');
+      console.log('💡 API available: window.rotationAPI.rotateSVG(containerId, angle)');
+    });
+  </script>
+</body>
+</html>
