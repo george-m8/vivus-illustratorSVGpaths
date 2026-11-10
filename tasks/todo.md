@@ -182,22 +182,22 @@ uv run python -m http.server 8000
 **Description:** Run the script over `svgs/` and commit `svgs/v2/`. Add `test-themed.html`, which shows each original next to its v2 copy (inline-injected, no variables set) on a dark background.
 
 **Acceptance criteria:**
-- [ ] Every top-level `svgs/X.svg` except colour variants has a `svgs/v2/X.svg` (24 files)
-- [ ] Every pair looks identical on the comparison page
-- [ ] `git diff svgs/*.svg` is empty
+- [x] Every top-level `svgs/X.svg` except colour variants has a `svgs/v2/X.svg` (24 files)
+- [x] Every pair looks identical on the comparison page
+- [x] `git diff svgs/*.svg` is empty
 
 **Verification:**
-- [ ] Commands: `uv run python theme_svg.py ./svgs ./svgs/v2`, then `git diff --stat svgs/*.svg`
-- [ ] Manual: `http://localhost:8000/test-themed.html`
+- [x] Commands: `uv run python theme_svg.py ./svgs ./svgs/v2`, then `git diff --stat svgs/*.svg`
+- [x] Manual: `http://localhost:8000/test-themed.html`
 
 **Dependencies:** T8
 **Files likely touched:** `svgs/v2/*` (generated), `test-themed.html`
 **Estimated scope:** S (many generated files, little authored)
 
 ## Checkpoint C: v2 assets
-- [ ] `uv run pytest` passes
-- [ ] The comparison page shows no differences
-- [ ] Originals are unchanged
+- [x] `uv run pytest` passes
+- [x] The comparison page shows no differences
+- [x] Originals are unchanged
 
 ## Task 10: Loader applies colours and resolves names to v2
 

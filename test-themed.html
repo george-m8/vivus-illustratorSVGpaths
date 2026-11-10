@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Original vs v2</title>
+  <style>
+    body { margin: 0; padding: 20px; background: #222; color: #fff; font-family: sans-serif; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .pair { border: 1px solid #555; padding: 8px; }
+    .pair.fail { border-color: #f77; }
+    .pair .imgs { display: flex; gap: 8px; }
+    .pair .imgs > div { width: 110px; }
+    svg { width: 100%; height: auto; display: block; }
+    #summary.pass { color: #7f7; }
+    #summary.fail { color: #f77; }
+  </style>
+</head>
+<body>
+  <!--
+    Shows each svgs/X.svg next to svgs/v2/X.svg with no colour variables set,
+    and compares their rendered pixels. Serve with:
+      uv run --no-project python dev_server.py
+    then open http://localhost:8000/test-themed.html
+    Add new icon names to NAMES below.
+  -->
+  <h1>Original vs v2 (no variables set)</h1>
+  <p id="summary">Comparing...</p>
+  <div class="grid" id="grid"></div>
+
+  <script>
+    const NAMES = ["arrow", "book-alt", "book", "business", "consult", "contact", "dh-logo", "event", "events", "fiftyk", "form",
+      "interviewer", "mail", "numeric1-right", "numeric1", "numeric2-right", "numeric2", "numeric3-right", "numeric3", "play",
+      "question-right", "question", "services", "triangle"];
+
+    async function pixels(svgText) {
+      const img = new Image();
+      img.src = URL.createObjectURL(new Blob([svgText], { type: 'image/svg+xml' }));
+      await img.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, 256, 256);
+      return ctx.getImageData(0, 0, 256, 256).data;
+    }
+
+    async function comparePair(name) {
+      const [orig, v2] = await Promise.all([`svgs/${name}.svg`, `svgs/v2/${name}.svg`].map(u => fetch(u).then(r => r.text())));
+      const [a, b] = await Promise.all([pixels(orig), pixels(v2)]);
+      let diff = 0;
+      for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) diff++;
+
+      const pair = document.createElement('div');
+      pair.className = 'pair' + (diff ? ' fail' : '');
+      pair.dataset.name = name;
+      pair.dataset.diff = diff;
+      pair.innerHTML = `<div>${name}: ${diff ? diff + ' channel values differ' : 'identical'}</div>
+        <div class="imgs"><div>${orig}</div><div>${v2}</div></div>`;
+      document.getElementById('grid').appendChild(pair);
+      return diff;
+    }
+
+    (async () => {
+      const diffs = [];
+      for (const name of NAMES) diffs.push(await comparePair(name));
+      const failed = diffs.filter(d => d).length;
+      const summary = document.getElementById('summary');
+      summary.textContent = failed ? `${failed} FAILED of ${NAMES.length}` : `ALL PASS (${NAMES.length} identical)`;
+      summary.className = failed ? 'fail' : 'pass';
+      summary.dataset.result = failed ? 'fail' : 'pass';
+    })();
+  </script>
+</body>
+</html>
