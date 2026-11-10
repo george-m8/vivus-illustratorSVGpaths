@@ -31,7 +31,7 @@ def test_play_accent_and_base_become_variables():
 def test_geometry_is_untouched_apart_from_class_names():
     out = theme_svg.convert_svg(PLAY)
     assert out.split("</style>")[1] == PLAY.split("</style>")[1].replace("play-cls-", "play-v2-cls-")
-    assert out.split("<style>")[0] == PLAY.split("<style>")[0]
+    assert out.split("<style>")[0] == PLAY.split("<style>")[0].replace(' id="Layer_2"', "")
 
 
 def test_v2_class_names_do_not_clash_with_originals():
@@ -118,3 +118,10 @@ def test_directory_skips_colour_variants_and_subfolders(tmp_path):
     theme_svg.process(src, out)
 
     assert sorted(p.name for p in out.glob("*.svg")) == ["book-alt.svg", "numeric1-right.svg", "play.svg", "stale.svg"]
+
+
+def test_root_svg_id_is_removed():
+    # Illustrator ids (Layer_N) repeat across files; nothing references them
+    out = theme_svg.convert_svg(PLAY)
+    assert 'id="Layer_2"' not in out
+    assert out.startswith('<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox=')
