@@ -150,12 +150,12 @@ uv run python -m http.server 8000
 **Description:** Set up `uv init --bare` and `uv add --dev pytest`, and add `.venv/` and `__pycache__/` to `.gitignore`. Write `theme_svg.py <src> [out=svgs/v2]` for the standard case: a stroke in a rule with `opacity` becomes `var(--svg-base,<orig>)`, and other strokes become `var(--svg-accent,<orig>)`. It writes to the output directory and never modifies its input. Test with a fixture taken from `play.svg`.
 
 **Acceptance criteria:**
-- [ ] `play.svg` converts to the expected `<style>` block, with all geometry byte-identical
-- [ ] The input file is unchanged after a run
-- [ ] Running twice gives identical output
+- [x] `play.svg` converts to the expected `<style>` block, with all geometry byte-identical
+- [x] The input file is unchanged after a run
+- [x] Running twice gives identical output
 
 **Verification:**
-- [ ] Tests pass: `uv run pytest`
+- [x] Tests pass: `uv run pytest`
 
 **Dependencies:** None (can run alongside phase 1)
 **Files likely touched:** `pyproject.toml`, `.gitignore`, `theme_svg.py`, `tests/test_theme_svg.py`

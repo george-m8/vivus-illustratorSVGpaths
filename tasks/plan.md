@@ -68,7 +68,7 @@ T1 and T7-T9 don't depend on the loader and could run in parallel with T2-T4. Th
 - [ ] Human review → optional merge/deploy of phase 1
 
 ### Phase 2: theming
-- [ ] T7: `theme_svg.py` converts a standard accent + base SVG (with pytest)
+- [x] T7: `theme_svg.py` converts a standard accent + base SVG (with pytest)
 - [ ] T8: `theme_svg.py` handles multi-accent, accent-only and colour-variant cases
 - [ ] T9: Generate `svgs/v2/` and a comparison page
 
