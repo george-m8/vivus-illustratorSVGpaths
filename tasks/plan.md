@@ -48,7 +48,7 @@ T1 and T7-T9 don't depend on the loader and could run in parallel with T2-T4. Th
 ## Task list
 
 ### Phase 0: Setup
-- [ ] T0: Create branch, commit specs and plan
+- [x] T0: Create branch, commit specs and plan (draft PR #5, preview: https://deploy-preview-5--vivus-svgs.netlify.app)
 
 ### Phase 1: auto-loader
 - [ ] T1: Fix rotation long-spin bug (legacy)

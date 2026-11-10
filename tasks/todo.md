@@ -18,7 +18,7 @@ uv run python -m http.server 8000
 
 **Acceptance criteria:**
 - [x] On branch `feature/auto-loader-theming`
-- [ ] Draft PR open against `main`, and the Netlify deploy preview builds
+- [x] Draft PR open against `main`, and the Netlify deploy preview builds
 - [x] `SPEC*.md` and `tasks/` are committed. `demo.html` and `generate_vivus_html.py` are left alone (unrelated, ask separately).
 
 **Verification:**
@@ -131,7 +131,7 @@ uv run python -m http.server 8000
 
 **Verification:**
 - [ ] Manual: follow `embed.md` from scratch on a blank local page and get an animated icon
-- [ ] Manual (staging): on `different-hats-staging.webflow.io`, load `vivusObserver.js` from `https://deploy-preview-<PR#>--vivus-svgs.netlify.app` plus a `data-svg` placeholder (from the console) and confirm it renders next to the existing legacy icons
+- [ ] Manual (staging): on `different-hats-staging.webflow.io`, load `vivusObserver.js` from `https://deploy-preview-5--vivus-svgs.netlify.app` plus a `data-svg` placeholder (from the console) and confirm it renders next to the existing legacy icons
 
 **Dependencies:** T2-T5
 **Files likely touched:** `readme.md`, `embed.md`, `ROTATION.md`
