@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>YAM icons</title>
+  <!-- Serve with: uv run --no-project python dev_server.py, then open /test-yam.html -->
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/src/pathformer.js"></script>
+  <script src="js/vivusObserver.js"></script>
+  <style>
+    body { margin: 0; padding: 20px; font-family: sans-serif; background: #fff; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 24px; }
+    .grid.dark { background: #222; color: #fff; padding: 16px; margin-top: 24px; }
+    figure { margin: 0; text-align: center; font-size: 12px; }
+    figure > div { width: 120px; margin: 0 auto 6px; }
+  </style>
+</head>
+<body>
+  <h1>YAM icons (default black)</h1>
+  <div class="grid" id="light"></div>
+  <div class="grid dark" id="dark"></div>
+  <script>
+    const NAMES = ["yam-building", "yam-logo", "yam-mail", "yam-mic", "yam-numeric1", "yam-numeric2",
+      "yam-numeric3", "yam-numeric4", "yam-person", "yam-speech"];
+    for (const [id, accent] of [["light", ""], ["dark", "#fcee21"]]) {
+      document.getElementById(id).innerHTML = NAMES.map(n =>
+        `<figure><div data-svg="svgs/v2/${n}.svg"${accent ? ` data-svg-accent="${accent}"` : ''}></div>${n}</figure>`).join('');
+    }
+  </script>
+</body>
+</html>

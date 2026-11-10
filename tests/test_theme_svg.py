@@ -125,3 +125,58 @@ def test_root_svg_id_is_removed():
     out = theme_svg.convert_svg(PLAY)
     assert 'id="Layer_2"' not in out
     assert out.startswith('<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox=')
+
+
+# --- Inkscape files (svgs/yam): colours in style="" attributes -------------
+
+# Trimmed from svgs/yam/yam-numeric1.svg: an outline path and a filled glyph
+YAM = (
+    '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n<!-- Created with Inkscape -->\n'
+    '<svg width="72.8mm" height="66.2mm" viewBox="0 0 72.8 66.2" version="1.1" id="svg1" xml:space="preserve" '
+    'inkscape:version="1.4.2" sodipodi:docname="drawing.svg" '
+    'xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" '
+    'xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" '
+    'xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">'
+    '<sodipodi:namedview id="namedview1" pagecolor="#ffffff"><inkscape:page x="0" y="0" id="page2" /></sodipodi:namedview>'
+    '<defs id="defs1" /><g inkscape:label="Layer 1" inkscape:groupmode="layer" id="layer1" transform="translate(-120,-4)">'
+    '<path style="display:inline;fill:none;stroke:#000000;stroke-width:2.8" d="m 1,1 2,2" id="path3-4" sodipodi:nodetypes="cc" />'
+    '<path style="font-weight:bold;stroke-width:2.9;stroke-linecap:square;stroke-linejoin:bevel" d="m 5,5 1,1" id="text1" aria-label="1" />'
+    '<path style="display:inline;fill:#000000" d="m 7,7 1,1" id="path5" />'
+    '</g></svg>'
+)
+
+
+def styles(svg_text):
+    import re
+    return re.findall(r'style="([^"]*)"', svg_text)
+
+
+def test_inkscape_outline_stroke_becomes_accent():
+    outline = styles(theme_svg.convert_svg(YAM))[0]
+    assert "stroke:var(--svg-accent,#000000)" in outline
+    assert "fill:none" in outline
+
+
+def test_inkscape_filled_shapes_get_accent_fill_and_no_stroke():
+    # Fills show from the start; only shapes that already had a stroke are drawn
+    glyph, logo = styles(theme_svg.convert_svg(YAM))[1:]
+    assert glyph == "font-weight:bold;stroke-width:2.9;stroke-linecap:square;stroke-linejoin:bevel;fill:var(--svg-accent,#000000)"
+    assert logo == "display:inline;fill:var(--svg-accent,#000000)"
+
+
+def test_inkscape_editor_data_is_removed():
+    out = theme_svg.convert_svg(YAM)
+    for junk in ("inkscape", "sodipodi", "<!--", ' id="', "mm\"", "<defs", "aria-label", "xmlns:svg"):
+        assert junk not in out
+    assert '<svg viewBox="0 0 72.8 66.2" xmlns="http://www.w3.org/2000/svg">' in out
+    assert 'd="m 1,1 2,2"' in out and 'transform="translate(-120,-4)"' in out
+
+
+def test_inkscape_conversion_is_idempotent():
+    once = theme_svg.convert_svg(YAM)
+    assert theme_svg.convert_svg(once) == once
+
+
+def test_inkscape_dasharray_is_left_to_vivus():
+    yam = YAM.replace("stroke-width:2.8", "stroke-width:2.8;stroke-dasharray:none")
+    assert "stroke-dasharray" not in theme_svg.convert_svg(yam)

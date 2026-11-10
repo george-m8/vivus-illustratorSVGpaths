@@ -5,6 +5,11 @@ Strokes in rules that also set opacity become var(--svg-base, <orig>);
 other strokes become var(--svg-accent, <orig>). Each variable falls back to
 the original colour, so with nothing set an icon looks the same as before.
 
+Inkscape files (no <style> block, colours in style="" attributes) are also
+stripped of editor data, and their fill and stroke colours become accents.
+Fills are left as they are, so they show from the start while Vivus draws
+the strokes.
+
 Usage: uv run python theme_svg.py <file_or_directory> [output_dir=svgs/v2]
 """
 import re
@@ -18,6 +23,15 @@ OPACITY_RE = re.compile(r"(^|;)\s*opacity\s*:")
 CLASS_PREFIX_RE = re.compile(r"([A-Za-z0-9_-]+?)-cls-")
 ROOT_ID_RE = re.compile(r'(<svg\b[^>]*?)\s+id="[^"]*"')
 
+
+# Inkscape files
+COMMENT_RE = re.compile(r"<!--.*?-->\s*", re.S)
+XML_DECL_RE = re.compile(r"<\?xml[^>]*\?>\s*")
+NAMEDVIEW_RE = re.compile(r"<sodipodi:namedview\b[^>]*?(?:/>|>.*?</sodipodi:namedview>)", re.S)
+EMPTY_DEFS_RE = re.compile(r"<defs\b[^>]*/>")
+EDITOR_ATTR_RE = re.compile(r'\s+(?:inkscape:[\w-]+|sodipodi:[\w-]+|xmlns:\w+|xml:space|version|id|aria-label)="[^"]*"')
+ROOT_SIZE_RE = re.compile(r'(<svg\b[^>]*?)\s+(?:width|height)="[^"]*"')
+INLINE_STYLE_RE = re.compile(r'style="([^"]*)"')
 
 # Colour copies (contact-black.svg etc.) are replaced by colour attributes in v2
 COLOUR_VARIANT_RE = re.compile(r"-(black|white|yellow)$")
@@ -35,10 +49,17 @@ def accent_colours(css):
     return colours
 
 
+def accent_var(colour, accents):
+    """CSS value for an accent colour; numbered when a file has several."""
+    if len(accents) > 1:  # multi-colour icons like dh-logo
+        n = accents.index(colour.lower()) + 1
+        return f"var(--svg-accent-{n},var(--svg-accent,{colour}))"
+    return f"var(--svg-accent,{colour})"
+
+
 def convert_css(css):
     """Swap stroke colours in a stylesheet for CSS variables."""
     accents = accent_colours(css)
-    numbered = len(accents) > 1  # multi-colour icons like dh-logo
 
     def convert_rule(match):
         selector, body = match.groups()
@@ -48,14 +69,46 @@ def convert_css(css):
             colour = stroke.group(1)
             if is_base:
                 return f"stroke:var(--svg-base,{colour})"
-            if numbered:
-                n = accents.index(colour.lower()) + 1
-                return f"stroke:var(--svg-accent-{n},var(--svg-accent,{colour}))"
-            return f"stroke:var(--svg-accent,{colour})"
+            return f"stroke:{accent_var(colour, accents)}"
 
         return selector + "{" + STROKE_RE.sub(convert_stroke, body) + "}"
 
     return RULE_RE.sub(convert_rule, css)
+
+
+def parse_style(style):
+    """style="" text -> dict of declarations, in order."""
+    pairs = (d.split(":", 1) for d in style.split(";") if ":" in d)
+    return {k.strip(): v.strip() for k, v in pairs}
+
+
+def shape_colours(decls):
+    """{property: colour} for a shape's fill and stroke. SVG fills black by default."""
+    colours = {"fill": decls.get("fill", "#000000"), "stroke": decls.get("stroke", "none")}
+    return {prop: c for prop, c in colours.items() if c != "none"}
+
+
+def convert_inline(svg_text):
+    """Theme an Inkscape SVG whose colours are in style="" attributes."""
+    for pattern in (XML_DECL_RE, COMMENT_RE, NAMEDVIEW_RE, EMPTY_DEFS_RE, EDITOR_ATTR_RE):
+        svg_text = pattern.sub("", svg_text)
+    while ROOT_SIZE_RE.search(svg_text):  # sized by its container, like the other icons
+        svg_text = ROOT_SIZE_RE.sub(r"\1", svg_text, count=1)
+
+    shapes = [parse_style(s) for s in INLINE_STYLE_RE.findall(svg_text)]
+    accents = []
+    for colour in (c for decls in shapes for c in shape_colours(decls).values()):
+        if colour.lower() not in accents:
+            accents.append(colour.lower())
+
+    def convert_style(match):
+        decls = parse_style(match.group(1))
+        decls.pop("stroke-dasharray", None)  # Vivus animates the dash itself
+        for prop, colour in shape_colours(decls).items():
+            decls[prop] = accent_var(colour, accents)
+        return 'style="' + ";".join(f"{k}:{v}" for k, v in decls.items()) + '"'
+
+    return '<?xml version="1.0" encoding="UTF-8"?>' + INLINE_STYLE_RE.sub(convert_style, svg_text)
 
 
 def convert_svg(svg_text):
@@ -67,6 +120,8 @@ def convert_svg(svg_text):
     """
     if "var(--svg-" in svg_text:
         return svg_text  # already converted
+    if "<style>" not in svg_text:
+        return convert_inline(svg_text)
     svg_text = CLASS_PREFIX_RE.sub(r"\1-v2-cls-", svg_text)
     svg_text = ROOT_ID_RE.sub(r"\1", svg_text, count=1)  # Layer_N ids repeat across files
     return STYLE_RE.sub(lambda m: f"<style>{convert_css(m.group(1))}</style>", svg_text)

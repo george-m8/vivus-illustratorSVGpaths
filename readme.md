@@ -80,6 +80,25 @@ The colour copies of icons aren't in `v2/`, because attributes replace them:
    uv run pytest
    ```
 
+### YAM icons (Inkscape)
+
+The YAM icons (`yam-building`, `yam-logo`, `yam-mail`, `yam-mic`, `yam-numeric1` to `yam-numeric4`, `yam-person`, `yam-speech`) come from Inkscape. Their sources are in `svgs/yam/` and exist only as v2, so they have no copy in `svgs/`. They have no base lines: everything is accent, which defaults to black.
+
+```html
+<div data-svg="yam-mail"></div>
+<div data-svg="yam-logo" data-svg-accent="#fcee21"></div>
+```
+
+Filled shapes, such as the numerals and the logo lettering, are visible from the start and get no outline. Vivus draws only the shapes that already have a stroke, like the speech bubbles. The accent colour sets both.
+
+To add or update one, save it into `svgs/yam/` and run:
+
+```bash
+uv run python theme_svg.py ./svgs/yam ./svgs/v2
+```
+
+Files without a `<style>` block are treated as Inkscape files. The converter strips editor data and IDs, and turns the colours in each shape's `style=""` into accent variables. `test-yam.html` shows every YAM icon on light and dark backgrounds.
+
 ## Legacy method (per-page script)
 
 The original ID-based method still works unchanged, and existing sites need no changes. New pages should use the quick start above.
