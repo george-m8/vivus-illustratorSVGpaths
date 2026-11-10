@@ -61,6 +61,8 @@ A new `theme_svg.py`, run with `uv run`, reads a source file or directory (the s
 3. It's deterministic: running it again gives byte-identical output, and inputs that already contain `var(--svg-` are copied unchanged.
 4. Colour variants (filenames ending `-black`, `-white` or `-yellow`) are skipped, because colour attributes replace them in v2. Other suffixes such as `-right` and `-alt` are different shapes, so they're kept.
 
+5. Class prefixes in the output become `<name>-v2-cls-*`. Inline `<style>` rules apply to the whole page, so without this an original `play.svg` on the same page would override a v2 copy's variables (found during T10).
+
 The script then runs once over `svgs/` (only the top-level `*.svg` files, never `v2/`), and the generated `svgs/v2/` files are committed. When a new icon is added later, it goes into `svgs/` and the script is run again.
 
 ## Project Structure

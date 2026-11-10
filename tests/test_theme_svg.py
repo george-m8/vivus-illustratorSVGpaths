@@ -21,17 +21,25 @@ def style_of(svg_text):
 
 def test_play_accent_and_base_become_variables():
     assert style_of(theme_svg.convert_svg(PLAY)) == (
-        ".play-cls-1{stroke:var(--svg-accent,#fcee21);}"
-        ".play-cls-1,.play-cls-2,.play-cls-3{fill:none;stroke-miterlimit:10;stroke-width:6px;}"
-        ".play-cls-1,.play-cls-3{stroke-linecap:square;}"
-        ".play-cls-2,.play-cls-3{opacity:.4;stroke:var(--svg-base,#fff);}"
+        ".play-v2-cls-1{stroke:var(--svg-accent,#fcee21);}"
+        ".play-v2-cls-1,.play-v2-cls-2,.play-v2-cls-3{fill:none;stroke-miterlimit:10;stroke-width:6px;}"
+        ".play-v2-cls-1,.play-v2-cls-3{stroke-linecap:square;}"
+        ".play-v2-cls-2,.play-v2-cls-3{opacity:.4;stroke:var(--svg-base,#fff);}"
     )
 
 
-def test_geometry_is_untouched():
+def test_geometry_is_untouched_apart_from_class_names():
     out = theme_svg.convert_svg(PLAY)
-    assert out.split("</style>")[1] == PLAY.split("</style>")[1]
+    assert out.split("</style>")[1] == PLAY.split("</style>")[1].replace("play-cls-", "play-v2-cls-")
     assert out.split("<style>")[0] == PLAY.split("<style>")[0]
+
+
+def test_v2_class_names_do_not_clash_with_originals():
+    # Inline <style> rules are page-global: an original play.svg on the same page
+    # must not override a v2 copy's variables, so v2 uses its own class names.
+    out = theme_svg.convert_svg(PLAY)
+    assert "play-cls-" not in out
+    assert out.count("play-v2-cls-") == PLAY.count("play-cls-")
 
 
 def test_conversion_is_deterministic():
@@ -68,17 +76,17 @@ def wrap(style):
 
 def test_multi_accent_numbers_colours_in_stylesheet_order():
     assert style_of(theme_svg.convert_svg(wrap(DH_LOGO_STYLE))) == (
-        ".dh-logo-cls-1{stroke:var(--svg-accent-1,var(--svg-accent,#ed1c24));}"
-        ".dh-logo-cls-1,.dh-logo-cls-2,.dh-logo-cls-3{fill:none;stroke-miterlimit:10;stroke-width:6px;}"
-        ".dh-logo-cls-2{stroke:var(--svg-accent-2,var(--svg-accent,#fcee21));}"
-        ".dh-logo-cls-2,.dh-logo-cls-3{stroke-linecap:square;}"
-        ".dh-logo-cls-3{stroke:var(--svg-accent-3,var(--svg-accent,#3fa9f5));}"
+        ".dh-logo-v2-cls-1{stroke:var(--svg-accent-1,var(--svg-accent,#ed1c24));}"
+        ".dh-logo-v2-cls-1,.dh-logo-v2-cls-2,.dh-logo-v2-cls-3{fill:none;stroke-miterlimit:10;stroke-width:6px;}"
+        ".dh-logo-v2-cls-2{stroke:var(--svg-accent-2,var(--svg-accent,#fcee21));}"
+        ".dh-logo-v2-cls-2,.dh-logo-v2-cls-3{stroke-linecap:square;}"
+        ".dh-logo-v2-cls-3{stroke:var(--svg-accent-3,var(--svg-accent,#3fa9f5));}"
     )
 
 
 def test_accent_only_file_has_no_base():
     assert style_of(theme_svg.convert_svg(wrap(FIFTYK_STYLE))) == (
-        ".fiftyk-cls-1{fill:none;stroke:var(--svg-accent,#fcee21);stroke-miterlimit:10;stroke-width:6px}"
+        ".fiftyk-v2-cls-1{fill:none;stroke:var(--svg-accent,#fcee21);stroke-miterlimit:10;stroke-width:6px}"
     )
 
 

@@ -15,6 +15,7 @@ STYLE_RE = re.compile(r"<style>(.*?)</style>", re.S)
 RULE_RE = re.compile(r"([^{}]+)\{([^{}]*)\}")
 STROKE_RE = re.compile(r"stroke:\s*(#[0-9a-fA-F]{3,6})")
 OPACITY_RE = re.compile(r"(^|;)\s*opacity\s*:")
+CLASS_PREFIX_RE = re.compile(r"([A-Za-z0-9_-]+?)-cls-")
 
 
 # Colour copies (contact-black.svg etc.) are replaced by colour attributes in v2
@@ -57,7 +58,15 @@ def convert_css(css):
 
 
 def convert_svg(svg_text):
-    """Return svg_text with its <style> block converted."""
+    """Return svg_text with its <style> block converted.
+
+    Class prefixes become "<name>-v2-cls-": inline <style> rules apply to the
+    whole page, so an original copy of the same icon would otherwise override
+    the v2 copy's variables.
+    """
+    if "var(--svg-" in svg_text:
+        return svg_text  # already converted
+    svg_text = CLASS_PREFIX_RE.sub(r"\1-v2-cls-", svg_text)
     return STYLE_RE.sub(lambda m: f"<style>{convert_css(m.group(1))}</style>", svg_text)
 
 
