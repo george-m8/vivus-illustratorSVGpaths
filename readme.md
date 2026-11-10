@@ -2,9 +2,38 @@
 This project uses vivus.js to animate svgs that are exported from Adobe Illustrator as SVGs. The intended purpose is for SVGs using paths, not fills. I've implemented an observer which plays the animations when an SVG is seen on the page. If all SVGs are seen at the same time, further SVGs are animated following a small, compounding delay. So that this doesn't impact responsive layouts negatively, the script uses a global delay with timeout so that if multiple shapes are seen one-by-one as the page scrolls, there is no extra delay added.
 
 ## Intended Use
-I've created this for use on a webflow site. By including the required code in a script tag, you can simply reference divs where the SVGs will be drawn.
+I've created this for use on a webflow site. Add three script tags to the site-wide head code once, then drop placeholder divs wherever an icon should appear. No per-page script is needed.
 
-## Example
+## Quick start (recommended)
+
+Head code, added once for the whole site:
+```html
+<script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/src/pathformer.js"></script>
+<script src="https://vivus-svgs.netlify.app/js/vivusObserver.js"></script>
+```
+
+Placeholder, anywhere on any page (inside components too, as many times as you like):
+```html
+<div data-svg="play"></div>
+```
+
+| Attribute | Default | Meaning |
+|---|---|---|
+| `data-svg` | (required) | An SVG name (`play` loads `svgs/play.svg` from wherever `vivusObserver.js` is served), or a full URL/path (anything containing `/` or ending `.svg`) |
+| `data-svg-duration` | `36` | Vivus `duration` |
+| `data-svg-type` | `scenario-sync` | Vivus `type` |
+| `data-svg-state` | (set by the script) | `loading`, `ready`, `animated` or `error`. Useful for styling and debugging. |
+
+- Each copy of an icon animates on its own as it scrolls into view, and each SVG file is downloaded only once per page.
+- Placeholders added after the page loads (tabs, sliders, CMS "load more") are picked up automatically.
+- A bad name sets `data-svg-state="error"` and logs one console error. Other icons still load.
+- For debug logging, set `window.VIVUS_DEBUG = true` before the script tag.
+
+## Legacy method (per-page script)
+
+The original ID-based method still works unchanged, and existing sites need no changes. New pages should use the quick start above.
+
 ```html
   <!-- Vivus & Pathformer (CDN or local) -->
   <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
@@ -123,12 +152,32 @@ const normalized = rotationAPI.normalizeAngle(450); // Returns 90
 
 See [rotation-demo.html](rotation-demo.html) for a complete working example with multiple scenarios.
 
+### Rotating auto-loaded icons
+
+Rotation also works on quick-start placeholders. Give the placeholder an `id` and pass it to `initRotationControls`:
+
+```html
+<div id="pillars" data-svg="dh-logo-yellow"></div>
+<button id="90deg" data-rotate-target="pillars">90°</button>
+<script>
+  document.addEventListener('DOMContentLoaded', () => initRotationControls([{ containerId: 'pillars' }]));
+</script>
+```
+
+## Local testing
+
+```bash
+uv run --no-project python dev_server.py
+```
+
+Then open `http://localhost:8000/test-auto.html`. It's a self-checking page whose summary line reads `ALL PASS` or `N FAILED`. Keep the tab visible, because hidden tabs don't fire the scroll-into-view checks. `dev_server.py` disables caching so edits show up on reload.
+
 ## Issues
 **Issue:** When using multiple svgs, styling conflicts
 **Fix:** This is due to matching class names. Fix manually by renaming classes to be unique to the file. Or, run "process_svg.py" using the file name or directory as argument. The script will prepend all appearances of "cls" with a sanitised file name. This script features logic to skip already process files in a directory.
 **Example:**
 ```bash
-python3 process_svg.py ./svgs
+uv run --no-project python process_svg.py ./svgs
 ```
 
 **Issue:** SVG paths animate in the incorrect order.
