@@ -121,16 +121,16 @@ Also check that `index.html`, `rotation-example.html` and `rotation-demo.html` b
 
 ## Success Criteria
 
-- [ ] With only the head include, `<div data-svg="play">` renders and animates on any page.
-- [ ] Three `data-svg="play"` on one page all render and each animates on its own as it scrolls into view, from a single network request.
-- [ ] A placeholder added to the DOM after load renders and animates.
-- [ ] A bad name sets `data-svg-state="error"` and the other icons still load.
-- [ ] The injected markup has no duplicate `id` attributes.
-- [ ] `index.html` and the `embed.md` legacy snippet behave exactly as before.
-- [ ] `rotation-example.html` and `rotation-demo.html` work as before. Legacy `initRotationControls` keeps its signature and return API.
-- [ ] `initRotationControls` can rotate an auto-loaded placeholder that has an `id`.
-- [ ] 0° → 350° → 10° turns -10° then +20°.
-- [ ] The readme and embed docs show the new method first, with the legacy method kept.
+- [x] With only the head include, `<div data-svg="play">` renders and animates on any page.
+- [x] Three `data-svg="play"` on one page all render and each animates on its own as it scrolls into view, from a single network request.
+- [x] A placeholder added to the DOM after load renders and animates.
+- [x] A bad name sets `data-svg-state="error"` and the other icons still load.
+- [x] The injected markup has no duplicate `id` attributes.
+- [x] `index.html` and the `embed.md` legacy snippet behave exactly as before.
+- [x] `rotation-example.html` and `rotation-demo.html` work as before. Legacy `initRotationControls` keeps its signature and return API.
+- [x] `initRotationControls` can rotate an auto-loaded placeholder that has an `id`.
+- [x] 0° → 350° → 10° turns -10° then +20°.
+- [x] The readme and embed docs show the new method first, with the legacy method kept.
 
 ## Open Questions
 

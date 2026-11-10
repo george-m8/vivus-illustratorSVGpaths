@@ -125,20 +125,20 @@ uv run python -m http.server 8000
 **Description:** Lead `readme.md` and `embed.md` with the attribute method (head include + placeholders only), and keep the legacy method under its own heading. Add a short note to `ROTATION.md` on rotating auto-loaded icons and the bug fix. Fix the `python3` command in the readme to `uv run python`.
 
 **Acceptance criteria:**
-- [ ] The readme and embed docs show a copy-pasteable head include + placeholder example with every attribute listed
-- [ ] The legacy docs are still present and accurate
-- [ ] `ROTATION.md` mentions auto-loaded icons
+- [x] The readme and embed docs show a copy-pasteable head include + placeholder example with every attribute listed
+- [x] The legacy docs are still present and accurate
+- [x] `ROTATION.md` mentions auto-loaded icons
 
 **Verification:**
-- [ ] Manual: follow `embed.md` from scratch on a blank local page and get an animated icon
-- [ ] Manual (staging): on `different-hats-staging.webflow.io`, load `vivusObserver.js` from `https://deploy-preview-5--vivus-svgs.netlify.app` plus a `data-svg` placeholder (from the console) and confirm it renders next to the existing legacy icons
+- [x] Manual: follow `embed.md` from scratch on a blank local page and get an animated icon
+- [x] Manual (staging): on `different-hats-staging.webflow.io`, load `vivusObserver.js` from `https://deploy-preview-5--vivus-svgs.netlify.app` plus a `data-svg` placeholder (from the console) and confirm it renders next to the existing legacy icons
 
 **Dependencies:** T2-T5
 **Files likely touched:** `readme.md`, `embed.md`, `ROTATION.md`
 **Estimated scope:** S
 
 ## Checkpoint B: auto-loader shippable
-- [ ] All auto-loader success criteria in the spec are ticked
+- [x] All auto-loader success criteria in the spec are ticked
 - [ ] Human review. Decide whether to merge phase 1 now (deploys live) or wait for theming.
 
 ---
