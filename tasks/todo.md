@@ -54,13 +54,13 @@ uv run python -m http.server 8000
 **Description:** Add the auto-loader path: on DOM ready, find `[data-svg]` elements without `data-svg-state`, resolve the URL (name → `<base>/svgs/<name>.svg`, or used as-is if it contains `/` or ends in `.svg`), fetch, inject, remove the root `<svg>`'s `id`, run Pathformer and Vivus (`start: 'manual'`, duration/type from attributes), and animate on intersection using a module-level stagger timeline. Set `data-svg-state` through `loading` → `ready` → `animated`, or `error`. Debug logging is controlled by `window.VIVUS_DEBUG`. Create `test-auto.html` with a single icon, a full-path icon and a bad-name case.
 
 **Acceptance criteria:**
-- [ ] `<div data-svg="play">` with only the head scripts renders and animates on scroll into view
-- [ ] `data-svg-duration` and `data-svg-type` are respected, with defaults of `36` and `scenario-sync`
-- [ ] A bad name sets `data-svg-state="error"` with one `console.error`, and other icons still load
+- [x] `<div data-svg="play">` with only the head scripts renders and animates on scroll into view
+- [x] `data-svg-duration` and `data-svg-type` are respected, with defaults of `36` and `scenario-sync`
+- [x] A bad name sets `data-svg-state="error"` with one `console.error`, and other icons still load
 
 **Verification:**
-- [ ] Manual: `http://localhost:8000/test-auto.html`, checking the state attributes in the Elements panel
-- [ ] Manual: `index.html` behaves as before
+- [x] Manual: `http://localhost:8000/test-auto.html`, checking the state attributes in the Elements panel
+- [x] Manual: `index.html` behaves as before
 
 **Dependencies:** None
 **Files likely touched:** `js/vivusObserver.js`, `test-auto.html`

@@ -21,11 +21,28 @@
 <body>
   <!--
     Self-checking test page. Open via a local server:
-      uv run --no-project python -m http.server 8000
+      uv run --no-project python dev_server.py
     then http://localhost:8000/test-auto.html
     The summary line reads "ALL PASS" or "N FAILED".
+    Keep the tab visible: hidden tabs don't fire IntersectionObserver, so the
+    "animates when in view" checks fail there.
   -->
   <div id="results"><strong id="summary">Running...</strong><ul id="list"></ul></div>
+  <script>
+    // Timeline of data-svg-state changes, for debugging timing failures
+    window.stateLog = [];
+    new MutationObserver(muts => muts.forEach(m => stateLog.push([Math.round(performance.now()), m.target.id, m.target.dataset.svgState])))
+      .observe(document.documentElement, { subtree: true, attributeFilter: ['data-svg-state'] });
+  </script>
+
+  <section>
+    <h2>T2: single placeholders</h2>
+    <div class="row">
+      <div id="t2play" data-svg="play"></div>
+      <div id="t2path" data-svg="svgs/book.svg" data-svg-duration="10" data-svg-type="oneByOne"></div>
+      <div id="t2bad" data-svg="nope"></div>
+    </div>
+  </section>
 
   <section>
     <h2>Rotation (legacy initRotationControls)</h2>
@@ -66,7 +83,37 @@
       check('rotation 10 -> 270 -> 10 -> 720 stays on short path', seq2.join() === 'rotate(-90deg),rotate(10deg),rotate(0deg)', seq2);
     }
 
+    async function waitForState(el, states, timeout = 4000) {
+      const start = Date.now();
+      while (Date.now() - start < timeout) {
+        if (states.includes(el.dataset.svgState)) return true;
+        await wait(50);
+      }
+      return false;
+    }
+
+    async function testSingle() {
+      const play = document.getElementById('t2play');
+      const path = document.getElementById('t2path');
+      const bad = document.getElementById('t2bad');
+
+      check('T2 name placeholder animates when in view', await waitForState(play, ['animated']), play.dataset.svgState);
+      check('T2 name placeholder contains an svg', !!play.querySelector('svg'));
+      check('T2 injected svg has no id', play.querySelector('svg') && !play.querySelector('svg').hasAttribute('id'));
+      const req = performance.getEntriesByType('resource').map(e => e.name);
+      check('T2 name resolves against script base', req.includes(`${location.origin}/svgs/play.svg`), req.filter(u => u.endsWith('.svg')));
+
+      check('T2 path placeholder loads', await waitForState(path, ['ready', 'animated']), path.dataset.svgState);
+      const inst = typeof getVivusInstance === 'function' ? getVivusInstance(path) : null;
+      check('T2 duration/type attributes respected', inst && inst.duration === 10 && inst.type === 'oneByOne', inst && { d: inst.duration, t: inst.type });
+      const playInst = typeof getVivusInstance === 'function' ? getVivusInstance(play) : null;
+      check('T2 defaults are 36 / scenario-sync', playInst && playInst.duration === 36 && playInst.type === 'scenario-sync', playInst && { d: playInst.duration, t: playInst.type });
+
+      check('T2 bad name sets error state', await waitForState(bad, ['error']), bad.dataset.svgState);
+    }
+
     window.addEventListener('load', async () => {
+      await testSingle();
       await testRotation();
       report();
     });

@@ -52,7 +52,7 @@ T1 and T7-T9 don't depend on the loader and could run in parallel with T2-T4. Th
 
 ### Phase 1: auto-loader
 - [x] T1: Fix rotation long-spin bug (legacy)
-- [ ] T2: Single `data-svg` placeholder renders and animates
+- [x] T2: Single `data-svg` placeholder renders and animates
 - [ ] T3: Duplicate placeholders share one fetch and animate independently
 - [ ] T4: Placeholders added after load are picked up
 
