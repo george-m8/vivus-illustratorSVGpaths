@@ -17,16 +17,39 @@ STROKE_RE = re.compile(r"stroke:\s*(#[0-9a-fA-F]{3,6})")
 OPACITY_RE = re.compile(r"(^|;)\s*opacity\s*:")
 
 
+# Colour copies (contact-black.svg etc.) are replaced by colour attributes in v2
+COLOUR_VARIANT_RE = re.compile(r"-(black|white|yellow)$")
+
+
+def accent_colours(css):
+    """Distinct accent colours (lower-cased) in stylesheet order."""
+    colours = []
+    for _, body in RULE_RE.findall(css):
+        if OPACITY_RE.search(body):
+            continue
+        for colour in STROKE_RE.findall(body):
+            if colour.lower() not in colours:
+                colours.append(colour.lower())
+    return colours
+
+
 def convert_css(css):
     """Swap stroke colours in a stylesheet for CSS variables."""
+    accents = accent_colours(css)
+    numbered = len(accents) > 1  # multi-colour icons like dh-logo
+
     def convert_rule(match):
         selector, body = match.groups()
         is_base = bool(OPACITY_RE.search(body))
 
         def convert_stroke(stroke):
             colour = stroke.group(1)
-            var = "--svg-base" if is_base else "--svg-accent"
-            return f"stroke:var({var},{colour})"
+            if is_base:
+                return f"stroke:var(--svg-base,{colour})"
+            if numbered:
+                n = accents.index(colour.lower()) + 1
+                return f"stroke:var(--svg-accent-{n},var(--svg-accent,{colour}))"
+            return f"stroke:var(--svg-accent,{colour})"
 
         return selector + "{" + STROKE_RE.sub(convert_stroke, body) + "}"
 
@@ -44,6 +67,9 @@ def process(src, out):
     files = sorted(src.glob("*.svg")) if src.is_dir() else [src]
     out.mkdir(parents=True, exist_ok=True)
     for path in files:
+        if COLOUR_VARIANT_RE.search(path.stem):
+            print(f"Skipped colour variant {path}")
+            continue
         (out / path.name).write_text(convert_svg(path.read_text(encoding="utf-8")), encoding="utf-8")
         print(f"Converted {path} -> {out / path.name}")
 

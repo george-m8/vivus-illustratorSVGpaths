@@ -166,12 +166,12 @@ uv run python -m http.server 8000
 **Description:** Handle multi-accent files (`dh-logo`: `--svg-accent-N` in stylesheet order, falling back to `--svg-accent`), accent-only files (`fiftyk`), already-converted input (copied unchanged), and colour variants (filenames ending `-black`, `-white` or `-yellow` are skipped; `-right`/`-alt` are kept). Directory mode processes only top-level `*.svg`.
 
 **Acceptance criteria:**
-- [ ] A pytest case passes for each of: `dh-logo`, `fiftyk`, already-converted input
-- [ ] `contact-black.svg` and `dh-logo-yellow.svg` are skipped, and `numeric1-right.svg` is converted
-- [ ] Directory mode never reads from `svgs/v2/`
+- [x] A pytest case passes for each of: `dh-logo`, `fiftyk`, already-converted input
+- [x] `contact-black.svg` and `dh-logo-yellow.svg` are skipped, and `numeric1-right.svg` is converted
+- [x] Directory mode never reads from `svgs/v2/`
 
 **Verification:**
-- [ ] Tests pass: `uv run pytest`
+- [x] Tests pass: `uv run pytest`
 
 **Dependencies:** T7
 **Files likely touched:** `theme_svg.py`, `tests/test_theme_svg.py`
