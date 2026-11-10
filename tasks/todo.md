@@ -71,12 +71,12 @@ uv run python -m http.server 8000
 **Description:** Cache the fetch promise for each URL, and keep Vivus instances in a `WeakMap` keyed by element. Add test cases for three copies of one icon and an icon inside a repeated "component" block.
 
 **Acceptance criteria:**
-- [ ] Three `data-svg="play"` on one page all render, from **one** network request
-- [ ] Each copy animates when *it* scrolls into view, not when the first one does
-- [ ] No duplicate `id` attributes in the injected markup (`document.querySelectorAll('[id]')` check)
+- [x] Three `data-svg="play"` on one page all render, from **one** network request
+- [x] Each copy animates when *it* scrolls into view, not when the first one does
+- [x] No duplicate `id` attributes in the injected markup (`document.querySelectorAll('[id]')` check)
 
 **Verification:**
-- [ ] Manual: Network panel filtered to `.svg`, then scroll the duplicates section slowly
+- [x] Manual: Network panel filtered to `.svg`, then scroll the duplicates section slowly
 
 **Dependencies:** T2
 **Files likely touched:** `js/vivusObserver.js`, `test-auto.html`

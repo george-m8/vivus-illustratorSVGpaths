@@ -45,6 +45,17 @@
   </section>
 
   <section>
+    <h2>T3: duplicates (scrolled into view one at a time)</h2>
+    <div class="spacer"></div>
+    <div class="row"><div id="t3dupA" data-svg="play"></div></div>
+    <div class="spacer"></div>
+    <div class="row"><div id="t3dupB" data-svg="play"></div></div>
+    <div class="spacer"></div>
+    <div class="component"><p>Component copy 1</p><div class="row"><div data-svg="events" class="t3comp"></div></div></div>
+    <div class="component"><p>Component copy 2</p><div class="row"><div data-svg="events" class="t3comp"></div></div></div>
+  </section>
+
+  <section>
     <h2>Rotation (legacy initRotationControls)</h2>
     <div class="row"><div id="rotUnit"><svg viewBox="0 0 10 10"></svg></div></div>
   </section>
@@ -112,8 +123,39 @@
       check('T2 bad name sets error state', await waitForState(bad, ['error']), bad.dataset.svgState);
     }
 
+    function requestCount(file) {
+      return performance.getEntriesByType('resource').filter(e => e.name.endsWith(`/svgs/${file}`)).length;
+    }
+
+    async function testDuplicates() {
+      const a = document.getElementById('t3dupA');
+      const b = document.getElementById('t3dupB');
+      const comps = [...document.querySelectorAll('.t3comp')];
+
+      check('T3 duplicates load', await waitForState(a, ['ready']) && await waitForState(b, ['ready']), [a.dataset.svgState, b.dataset.svgState]);
+      check('T3 play.svg fetched once for three copies', requestCount('play.svg') === 1, requestCount('play.svg'));
+      check('T3 off-screen duplicates wait (not animated with the first copy)', a.dataset.svgState === 'ready' && b.dataset.svgState === 'ready', [a.dataset.svgState, b.dataset.svgState]);
+
+      a.scrollIntoView({ block: 'center' });
+      check('T3 first duplicate animates when scrolled to', await waitForState(a, ['animated']), a.dataset.svgState);
+      check('T3 second duplicate still waiting', b.dataset.svgState === 'ready', b.dataset.svgState);
+
+      b.scrollIntoView({ block: 'center' });
+      check('T3 second duplicate animates when scrolled to', await waitForState(b, ['animated']), b.dataset.svgState);
+
+      comps[0].scrollIntoView({ block: 'center' });
+      check('T3 component copies both render', await waitForState(comps[0], ['animated']) && await waitForState(comps[1], ['ready', 'animated']), comps.map(c => c.dataset.svgState));
+      check('T3 events.svg fetched once for two components', requestCount('events.svg') === 1, requestCount('events.svg'));
+
+      const ids = [...document.querySelectorAll('[id]')].map(e => e.id);
+      const dupIds = ids.filter((id, i) => ids.indexOf(id) !== i);
+      check('T3 no duplicate ids on the page', dupIds.length === 0, dupIds);
+      window.scrollTo(0, 0);
+    }
+
     window.addEventListener('load', async () => {
       await testSingle();
+      await testDuplicates();
       await testRotation();
       report();
     });
