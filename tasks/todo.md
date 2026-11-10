@@ -204,12 +204,12 @@ uv run python -m http.server 8000
 **Description:** The loader sets `--svg-accent`, `--svg-accent-1..3` and `--svg-base` (`light` → `#fff`, `dark` → `#000`, otherwise used as-is) as inline custom properties on the placeholder. Bare names now resolve to `svgs/v2/<name>.svg`. Add colour cases to `test-auto.html`: per-instance accent next to a default copy, base dark, `dh-logo` single accent and `accent-2` only, ancestor CSS variable on both the auto and legacy paths, and a v1 + v2 copy of the same icon on one page.
 
 **Acceptance criteria:**
-- [ ] `data-svg-accent="#f0f"` recolours only that instance
-- [ ] `dh-logo` defaults to three colours, `data-svg-accent` makes it one colour, and `data-svg-accent-2` changes only the yellow
-- [ ] `data-svg="play"` requests `svgs/v2/play.svg`, and `svgs/play.svg` still loads the original
+- [x] `data-svg-accent="#f0f"` recolours only that instance
+- [x] `dh-logo` defaults to three colours, `data-svg-accent` makes it one colour, and `data-svg-accent-2` changes only the yellow
+- [x] `data-svg="play"` requests `svgs/v2/play.svg`, and `svgs/play.svg` still loads the original
 
 **Verification:**
-- [ ] Manual: colour section of `test-auto.html`, plus the Network panel for URL resolution
+- [x] Manual: colour section of `test-auto.html`, plus the Network panel for URL resolution
 
 **Dependencies:** T2, T9
 **Files likely touched:** `js/vivusObserver.js`, `test-auto.html`

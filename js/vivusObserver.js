@@ -311,9 +311,12 @@ function initRotationControls(shapeConfigs, controlSelector = '[data-rotate-targ
  *
  * Finds placeholders like <div data-svg="play"></div> on any page and draws
  * them, with no per-page script. Attributes:
- *   data-svg           SVG name ("play" -> <base>/svgs/play.svg) or a URL/path
+ *   data-svg           SVG name ("play" -> <base>/svgs/v2/play.svg) or a URL/path
  *   data-svg-duration  Vivus duration (default 36)
  *   data-svg-type      Vivus type (default "scenario-sync")
+ *   data-svg-accent    Accent stroke colour (sets --svg-accent)
+ *   data-svg-accent-1..3  Per-colour accents for multi-colour icons (dh-logo)
+ *   data-svg-base      Faint strokes: "light" (#fff), "dark" (#000) or any colour
  *   data-svg-state     Set by the loader: loading | ready | animated | error
  *
  * Set window.VIVUS_DEBUG = true for debug logging.
@@ -352,7 +355,22 @@ function autoDebug(...args) {
  */
 function resolveSvgUrl(value) {
   if (value.includes('/') || value.endsWith('.svg')) return value;
-  return `${VIVUS_BASE_URL}/svgs/${value}.svg`;
+  return `${VIVUS_BASE_URL}/svgs/v2/${value}.svg`;
+}
+
+const BASE_PRESETS = { light: '#fff', dark: '#000' };
+
+/**
+ * applyColours
+ * Copies colour attributes onto the placeholder as CSS variables, which the
+ * v2 SVGs inherit. Unset attributes leave the SVG's own defaults in place.
+ */
+function applyColours(element) {
+  const set = (name, value) => { if (value) element.style.setProperty(name, value); };
+  set('--svg-accent', element.getAttribute('data-svg-accent'));
+  [1, 2, 3].forEach(n => set(`--svg-accent-${n}`, element.getAttribute(`data-svg-accent-${n}`)));
+  const base = element.getAttribute('data-svg-base');
+  set('--svg-base', BASE_PRESETS[base] || base);
 }
 
 /**
@@ -413,6 +431,7 @@ function getAutoObserver() {
  */
 function loadPlaceholder(element) {
   element.dataset.svgState = 'loading';
+  applyColours(element);
   const url = resolveSvgUrl(element.dataset.svg);
   autoDebug(`Loading ${url}`);
 

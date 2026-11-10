@@ -78,11 +78,40 @@
       vivusOptions: { type: 'scenario-sync', duration: 36 },
       vivusInstance: null,
       isAnimated: false
+    }, {
+      containerId: 't10legacyInherit',
+      svgUrl: 'svgs/v2/mail.svg',
+      vivusOptions: { type: 'scenario-sync', duration: 36 },
+      vivusInstance: null,
+      isAnimated: false
     }];
     document.addEventListener('DOMContentLoaded', function () {
       initGlobalStaggerObserver(legacyShapes, 0.5, false);
     });
   </script>
+
+  <section>
+    <h2>T10: colours</h2>
+    <div class="row">
+      <div id="t10default" data-svg="play"></div>
+      <div id="t10accent" data-svg="play" data-svg-accent="#ff00ff"></div>
+      <div id="t10dark" data-svg="play" data-svg-base="dark"></div>
+      <div id="t10custom" data-svg="play" data-svg-base="#00ff00"></div>
+    </div>
+    <div class="row">
+      <div id="t10logo" data-svg="dh-logo"></div>
+      <div id="t10logoOne" data-svg="dh-logo" data-svg-accent="#00ff00"></div>
+      <div id="t10logoTwo" data-svg="dh-logo" data-svg-accent-2="#ff00ff"></div>
+    </div>
+    <div class="row" style="--svg-accent: #00ffff">
+      <div id="t10inherit" data-svg="play"></div>
+      <div id="t10legacyInherit"></div>
+    </div>
+    <div class="row">
+      <div id="t10original" data-svg="svgs/play.svg"></div>
+      <div id="t10afterOriginal" data-svg="play" data-svg-accent="#ff00ff"></div>
+    </div>
+  </section>
 
   <section>
     <h2>Rotation (legacy initRotationControls)</h2>
@@ -141,7 +170,7 @@
       check('T2 name placeholder contains an svg', !!play.querySelector('svg'));
       check('T2 injected svg has no id', play.querySelector('svg') && !play.querySelector('svg').hasAttribute('id'));
       const req = performance.getEntriesByType('resource').map(e => e.name);
-      check('T2 name resolves against script base', req.includes(`${location.origin}/svgs/play.svg`), req.filter(u => u.endsWith('.svg')));
+      check('T2 name resolves against script base', req.includes(`${location.origin}/svgs/v2/play.svg`), req.filter(u => u.endsWith('.svg')));
 
       check('T2 path placeholder loads', await waitForState(path, ['ready', 'animated']), path.dataset.svgState);
       const inst = typeof getVivusInstance === 'function' ? getVivusInstance(path) : null;
@@ -162,7 +191,7 @@
       const comps = [...document.querySelectorAll('.t3comp')];
 
       check('T3 duplicates load', await waitForState(a, ['ready']) && await waitForState(b, ['ready']), [a.dataset.svgState, b.dataset.svgState]);
-      check('T3 play.svg fetched once for three copies', requestCount('play.svg') === 1, requestCount('play.svg'));
+      check('T3 play.svg fetched once for three copies', requestCount('v2/play.svg') === 1, requestCount('v2/play.svg'));
       check('T3 off-screen duplicates wait (not animated with the first copy)', a.dataset.svgState === 'ready' && b.dataset.svgState === 'ready', [a.dataset.svgState, b.dataset.svgState]);
 
       a.scrollIntoView({ block: 'center' });
@@ -174,7 +203,7 @@
 
       comps[0].scrollIntoView({ block: 'center' });
       check('T3 component copies both render', await waitForState(comps[0], ['animated']) && await waitForState(comps[1], ['ready', 'animated']), comps.map(c => c.dataset.svgState));
-      check('T3 events.svg fetched once for two components', requestCount('events.svg') === 1, requestCount('events.svg'));
+      check('T3 events.svg fetched once for two components', requestCount('v2/events.svg') === 1, requestCount('v2/events.svg'));
 
       const ids = [...document.querySelectorAll('[id]')].map(e => e.id);
       const dupIds = ids.filter((id, i) => ids.indexOf(id) !== i);
@@ -193,13 +222,13 @@
     async function testLateContent() {
       const target = document.getElementById('t4target');
       target.scrollIntoView({ block: 'center' });
-      const playBefore = requestCount('play.svg');
+      const playBefore = requestCount('v2/play.svg');
       document.getElementById('t4add').click();
       const [consult, play] = document.querySelectorAll('.t4new');
 
       check('T4 late placeholder renders and animates', await waitForState(consult, ['animated']), consult.dataset.svgState);
       check('T4 late duplicate animates', await waitForState(play, ['animated']), play.dataset.svgState);
-      check('T4 late duplicate reuses cached fetch', requestCount('play.svg') === playBefore, [playBefore, requestCount('play.svg')]);
+      check('T4 late duplicate reuses cached fetch', requestCount('v2/play.svg') === playBefore, [playBefore, requestCount('v2/play.svg')]);
 
       const svgBefore = consult.querySelector('svg');
       target.appendChild(consult); // move an already-processed element
@@ -228,7 +257,44 @@
       window.scrollTo(0, 0);
     }
 
+    const YELLOW = 'rgb(252, 238, 33)';
+    const MAGENTA = 'rgb(255, 0, 255)';
+    const GREEN = 'rgb(0, 255, 0)';
+    function strokeOf(id, selector) {
+      const el = document.querySelector(`#${id} ${selector}`);
+      return el ? getComputedStyle(el).stroke : null;
+    }
+
+    async function testColours() {
+      const ids = ['t10default', 't10accent', 't10dark', 't10custom', 't10logo', 't10logoOne', 't10logoTwo', 't10inherit', 't10original', 't10afterOriginal'];
+      for (const id of ids) await waitForState(document.getElementById(id), ['ready', 'animated']);
+      const legacyStart = Date.now();
+      while (!document.querySelector('#t10legacyInherit svg') && Date.now() - legacyStart < 4000) await wait(50);
+
+      const accent = '.play-v2-cls-1';
+      const base = '.play-v2-cls-2';
+      check('T10 default copy keeps original accent', strokeOf('t10default', accent) === YELLOW, strokeOf('t10default', accent));
+      check('T10 data-svg-accent recolours only that instance', strokeOf('t10accent', accent) === MAGENTA, strokeOf('t10accent', accent));
+      check('T10 default base is white', strokeOf('t10default', base) === 'rgb(255, 255, 255)', strokeOf('t10default', base));
+      check('T10 data-svg-base="dark" makes base black', strokeOf('t10dark', base) === 'rgb(0, 0, 0)', strokeOf('t10dark', base));
+      check('T10 data-svg-base takes a custom colour', strokeOf('t10custom', base) === GREEN, strokeOf('t10custom', base));
+
+      const logo = n => `.dh-logo-v2-cls-${n}`;
+      check('T10 dh-logo defaults to three colours', [1, 2, 3].map(n => strokeOf('t10logo', logo(n))).join('|') === 'rgb(237, 28, 36)|' + YELLOW + '|rgb(63, 169, 245)', [1, 2, 3].map(n => strokeOf('t10logo', logo(n))));
+      check('T10 data-svg-accent makes dh-logo one colour', [1, 2, 3].every(n => strokeOf('t10logoOne', logo(n)) === GREEN), [1, 2, 3].map(n => strokeOf('t10logoOne', logo(n))));
+      check('T10 data-svg-accent-2 changes only the yellow', strokeOf('t10logoTwo', logo(2)) === MAGENTA && strokeOf('t10logoTwo', logo(1)) === 'rgb(237, 28, 36)', [1, 2, 3].map(n => strokeOf('t10logoTwo', logo(n))));
+
+      check('T10 ancestor --svg-accent recolours auto icon', strokeOf('t10inherit', accent) === 'rgb(0, 255, 255)', strokeOf('t10inherit', accent));
+      check('T10 ancestor --svg-accent recolours legacy icon', strokeOf('t10legacyInherit', '.mail-v2-cls-1') === 'rgb(0, 255, 255)', strokeOf('t10legacyInherit', '.mail-v2-cls-1'));
+
+      const req = performance.getEntriesByType('resource').map(e => e.name);
+      check('T10 full path still loads the original', req.includes(`${location.origin}/svgs/play.svg`) && !!document.querySelector('#t10original .play-cls-1'));
+      check('T10 original on the page does not override v2 colours', strokeOf('t10afterOriginal', accent) === MAGENTA, strokeOf('t10afterOriginal', accent));
+      check('T10 original keeps its own colour', strokeOf('t10original', '.play-cls-1') === YELLOW, strokeOf('t10original', '.play-cls-1'));
+    }
+
     window.addEventListener('load', async () => {
+      await testColours();
       await testSingle();
       await testDuplicates();
       await testLateContent();
