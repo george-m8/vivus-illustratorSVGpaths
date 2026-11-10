@@ -37,13 +37,13 @@ uv run python -m http.server 8000
 **Description:** In `initRotationControls`, `rotateSVG` applies `currentAngle + delta` but stores the normalised target, so the next rotation can start from the wrong place and spin the long way. Store the applied (un-normalised) angle as the running transform value, and keep `getRotationState().currentAngle` reporting 0-360.
 
 **Acceptance criteria:**
-- [ ] 0° → 350° → 10° applies `rotate(-10deg)` then `rotate(10deg)` (a +20° turn)
-- [ ] 10° → 270° → 10° still takes the short path both ways
-- [ ] Signature and returned API are unchanged. `getRotationState(id).currentAngle` is within 0-360.
+- [x] 0° → 350° → 10° applies `rotate(-10deg)` then `rotate(10deg)` (a +20° turn)
+- [x] 10° → 270° → 10° still takes the short path both ways
+- [x] Signature and returned API are unchanged. `getRotationState(id).currentAngle` is within 0-360.
 
 **Verification:**
-- [ ] Manual: `test-rotation.html`, clicking the sequences above and watching the transform in DevTools
-- [ ] Manual: `rotation-example.html` and `rotation-demo.html` still work
+- [x] Manual: `test-rotation.html`, clicking the sequences above and watching the transform in DevTools
+- [x] Manual: `rotation-example.html` and `rotation-demo.html` still work
 
 **Dependencies:** None
 **Files likely touched:** `js/vivusObserver.js`

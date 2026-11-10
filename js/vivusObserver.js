@@ -168,8 +168,9 @@ function initRotationControls(shapeConfigs, controlSelector = '[data-rotate-targ
   // Initialize rotation state for each shape
   shapeConfigs.forEach(cfg => {
     rotationState[cfg.containerId] = {
-      currentAngle: 0,
-      targetAngle: 0
+      currentAngle: 0,   // normalised 0-360, reported via getRotationState
+      targetAngle: 0,
+      appliedAngle: 0    // running CSS rotate() value, may go beyond 0-360
     };
   });
   
@@ -229,7 +230,9 @@ function initRotationControls(shapeConfigs, controlSelector = '[data-rotate-targ
     
     // Calculate shortest path
     const delta = calculateShortestPath(state.currentAngle, targetAngle);
-    const newAngle = state.currentAngle + delta;
+    // Build on the angle actually applied, so the CSS transition always
+    // moves by `delta` (applying currentAngle + delta could spin the long way)
+    const newAngle = state.appliedAngle + delta;
     
     if (debug) {
       console.log(`[initRotationControls] Rotating ${containerId}:`, {
@@ -245,8 +248,9 @@ function initRotationControls(shapeConfigs, controlSelector = '[data-rotate-targ
     svg.style.transformOrigin = 'center center';
     svg.style.transform = `rotate(${newAngle}deg)`;
     
-    // Update state - store the actual rotation value (may exceed 360)
-    // but keep targetAngle normalized for future calculations
+    // Update state - appliedAngle keeps the running value (may exceed 360),
+    // currentAngle/targetAngle stay normalised for path calculations
+    state.appliedAngle = newAngle;
     state.currentAngle = targetAngle;
     state.targetAngle = targetAngle;
   }

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Auto-loader Tests</title>
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/src/pathformer.js"></script>
+  <script src="js/vivusObserver.js"></script>
+  <style>
+    body { margin: 0; padding: 20px; background: #222; color: #fff; font-family: sans-serif; }
+    #results { position: sticky; top: 0; background: #111; padding: 10px; z-index: 1; max-height: 40vh; overflow: auto; }
+    #results li.pass { color: #7f7; }
+    #results li.fail { color: #f77; }
+    section { margin: 40px 0; border-top: 1px solid #555; padding-top: 10px; }
+    .row { display: flex; gap: 20px; flex-wrap: wrap; }
+    .row > div { width: 120px; }
+    svg { width: 100%; height: auto; display: block; }
+    .spacer { height: 120vh; }
+  </style>
+</head>
+<body>
+  <!--
+    Self-checking test page. Open via a local server:
+      uv run --no-project python -m http.server 8000
+    then http://localhost:8000/test-auto.html
+    The summary line reads "ALL PASS" or "N FAILED".
+  -->
+  <div id="results"><strong id="summary">Running...</strong><ul id="list"></ul></div>
+
+  <section>
+    <h2>Rotation (legacy initRotationControls)</h2>
+    <div class="row"><div id="rotUnit"><svg viewBox="0 0 10 10"></svg></div></div>
+  </section>
+
+  <script>
+    const results = [];
+    function check(name, ok, detail) {
+      results.push({ name, ok: !!ok, detail });
+    }
+    function report() {
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+      results.forEach(r => {
+        const li = document.createElement('li');
+        li.className = r.ok ? 'pass' : 'fail';
+        li.textContent = `${r.ok ? 'PASS' : 'FAIL'} ${r.name}${r.ok || r.detail === undefined ? '' : ' - ' + JSON.stringify(r.detail)}`;
+        list.appendChild(li);
+      });
+      const failed = results.filter(r => !r.ok).length;
+      const summary = document.getElementById('summary');
+      summary.textContent = failed ? `${failed} FAILED` : 'ALL PASS';
+      summary.dataset.result = failed ? 'fail' : 'pass';
+    }
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+
+    async function testRotation() {
+      const api = initRotationControls([{ containerId: 'rotUnit' }], '[data-none]', 0, false);
+      const svg = document.querySelector('#rotUnit svg');
+      const seq = [];
+      for (const a of [350, 10]) { api.rotateSVG('rotUnit', a); seq.push(svg.style.transform); }
+      check('rotation 0 -> 350 -> 10 turns -10 then +20', seq[0] === 'rotate(-10deg)' && seq[1] === 'rotate(10deg)', seq);
+      check('rotation state reports normalised angle', api.getRotationState('rotUnit').currentAngle === 10, api.getRotationState('rotUnit'));
+
+      const seq2 = [];
+      for (const a of [270, 10, 720]) { api.rotateSVG('rotUnit', a); seq2.push(svg.style.transform); }
+      check('rotation 10 -> 270 -> 10 -> 720 stays on short path', seq2.join() === 'rotate(-90deg),rotate(10deg),rotate(0deg)', seq2);
+    }
+
+    window.addEventListener('load', async () => {
+      await testRotation();
+      report();
+    });
+  </script>
+</body>
+</html>
