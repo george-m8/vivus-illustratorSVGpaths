@@ -450,8 +450,24 @@ function scanForPlaceholders(root) {
   found.filter(el => !el.dataset.svgState).forEach(loadPlaceholder);
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => scanForPlaceholders(document));
-} else {
+/**
+ * startAutoLoader
+ * Scans the page once, then watches for placeholders added later
+ * (Webflow tabs, sliders, CMS "load more").
+ */
+function startAutoLoader() {
   scanForPlaceholders(document);
+  new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE) scanForPlaceholders(node);
+      });
+    });
+  }).observe(document.body, { childList: true, subtree: true });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startAutoLoader);
+} else {
+  startAutoLoader();
 }

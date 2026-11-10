@@ -87,21 +87,21 @@ uv run python -m http.server 8000
 **Description:** Add a `MutationObserver` on `document.body` that scans added subtrees for unprocessed `[data-svg]`. Add a test button that inserts a new placeholder (including a duplicate of an already-loaded icon).
 
 **Acceptance criteria:**
-- [ ] A placeholder added after load renders and animates
-- [ ] A duplicate added later reuses the cached fetch (no new request)
-- [ ] Re-adding an already processed element doesn't process it twice
+- [x] A placeholder added after load renders and animates
+- [x] A duplicate added later reuses the cached fetch (no new request)
+- [x] Re-adding an already processed element doesn't process it twice
 
 **Verification:**
-- [ ] Manual: click the insert button in `test-auto.html` and check the Network panel
+- [x] Manual: click the insert button in `test-auto.html` and check the Network panel
 
 **Dependencies:** T2, T3
 **Files likely touched:** `js/vivusObserver.js`, `test-auto.html`
 **Estimated scope:** S
 
 ## Checkpoint A: core loader
-- [ ] All T2-T4 cases pass in `test-auto.html`
-- [ ] `index.html` behaves as before
-- [ ] No console errors other than the deliberate bad-name case
+- [x] All T2-T4 cases pass in `test-auto.html`
+- [x] `index.html` behaves as before
+- [x] No console errors other than the deliberate bad-name case
 
 ## Task 5: Legacy and rotation coexist with auto-loaded icons
 

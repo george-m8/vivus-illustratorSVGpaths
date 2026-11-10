@@ -56,6 +56,12 @@
   </section>
 
   <section>
+    <h2>T4: added after load</h2>
+    <button id="t4add" type="button">Add placeholders</button>
+    <div class="row" id="t4target"></div>
+  </section>
+
+  <section>
     <h2>Rotation (legacy initRotationControls)</h2>
     <div class="row"><div id="rotUnit"><svg viewBox="0 0 10 10"></svg></div></div>
   </section>
@@ -153,9 +159,36 @@
       window.scrollTo(0, 0);
     }
 
+    // Simulates Webflow tabs/CMS "load more": wraps placeholders in a new subtree
+    document.getElementById('t4add').addEventListener('click', () => {
+      const wrap = document.createElement('div');
+      wrap.className = 'row';
+      wrap.innerHTML = '<div class="t4new" data-svg="consult"></div><div class="t4new" data-svg="play"></div>';
+      document.getElementById('t4target').appendChild(wrap);
+    });
+
+    async function testLateContent() {
+      const target = document.getElementById('t4target');
+      target.scrollIntoView({ block: 'center' });
+      const playBefore = requestCount('play.svg');
+      document.getElementById('t4add').click();
+      const [consult, play] = document.querySelectorAll('.t4new');
+
+      check('T4 late placeholder renders and animates', await waitForState(consult, ['animated']), consult.dataset.svgState);
+      check('T4 late duplicate animates', await waitForState(play, ['animated']), play.dataset.svgState);
+      check('T4 late duplicate reuses cached fetch', requestCount('play.svg') === playBefore, [playBefore, requestCount('play.svg')]);
+
+      const svgBefore = consult.querySelector('svg');
+      target.appendChild(consult); // move an already-processed element
+      await wait(200);
+      check('T4 moving a processed element does not reload it', consult.querySelector('svg') === svgBefore && consult.dataset.svgState === 'animated', consult.dataset.svgState);
+      window.scrollTo(0, 0);
+    }
+
     window.addEventListener('load', async () => {
       await testSingle();
       await testDuplicates();
+      await testLateContent();
       await testRotation();
       report();
     });

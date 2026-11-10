@@ -54,13 +54,13 @@ T1 and T7-T9 don't depend on the loader and could run in parallel with T2-T4. Th
 - [x] T1: Fix rotation long-spin bug (legacy)
 - [x] T2: Single `data-svg` placeholder renders and animates
 - [x] T3: Duplicate placeholders share one fetch and animate independently
-- [ ] T4: Placeholders added after load are picked up
+- [x] T4: Placeholders added after load are picked up
 
 ### Checkpoint A: core loader
-- [ ] `test-auto.html` cases from T2-T4 pass in the browser, and `index.html` is unchanged
+- [x] `test-auto.html` cases from T2-T4 pass in the browser, and `index.html` is unchanged
 
-- [ ] T5: Legacy observer and rotation coexist with auto-loaded icons
-- [ ] T6: Document the attribute method (readme, embed, ROTATION)
+- [x] T5: Legacy observer and rotation coexist with auto-loaded icons
+- [x] T6: Document the attribute method (readme, embed, ROTATION)
 
 ### Checkpoint B: auto-loader shippable
 - [ ] All auto-loader success criteria in the spec are met
