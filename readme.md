@@ -2,9 +2,107 @@
 This project uses vivus.js to animate svgs that are exported from Adobe Illustrator as SVGs. The intended purpose is for SVGs using paths, not fills. I've implemented an observer which plays the animations when an SVG is seen on the page. If all SVGs are seen at the same time, further SVGs are animated following a small, compounding delay. So that this doesn't impact responsive layouts negatively, the script uses a global delay with timeout so that if multiple shapes are seen one-by-one as the page scrolls, there is no extra delay added.
 
 ## Intended Use
-I've created this for use on a webflow site. By including the required code in a script tag, you can simply reference divs where the SVGs will be drawn.
+I've created this for use on a webflow site. Add three script tags to the site-wide head code once, then drop placeholder divs wherever an icon should appear. No per-page script is needed.
 
-## Example
+## Quick start (recommended)
+
+Head code, added once for the whole site:
+```html
+<script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/src/pathformer.js"></script>
+<script src="https://vivus-svgs.netlify.app/js/vivusObserver.js"></script>
+```
+
+Placeholder, anywhere on any page (inside components too, as many times as you like):
+```html
+<div data-svg="play"></div>
+```
+
+| Attribute | Default | Meaning |
+|---|---|---|
+| `data-svg` | (required) | An SVG name (`play` loads the colourable `svgs/v2/play.svg` from wherever `vivusObserver.js` is served), or a full URL/path (anything containing `/` or ending `.svg`), e.g. `svgs/play.svg` for the original |
+| `data-svg-duration` | `36` | Vivus `duration` |
+| `data-svg-type` | `scenario-sync` | Vivus `type` |
+| `data-svg-accent` | the icon's own colour | Accent stroke colour, any CSS colour |
+| `data-svg-base` | white | Faint strokes: `light` (white), `dark` (black) or any CSS colour |
+| `data-svg-accent-1`, `-2`, `-3` | the icon's own colours | Individual colours of multi-colour icons (`dh-logo`: red, yellow, blue) |
+| `data-svg-state` | (set by the script) | `loading`, `ready`, `animated` or `error`. Useful for styling and debugging. |
+
+- Each copy of an icon animates on its own as it scrolls into view, and each SVG file is downloaded only once per page.
+- Placeholders added after the page loads (tabs, sliders, CMS "load more") are picked up automatically.
+- A bad name sets `data-svg-state="error"` and logs one console error. Other icons still load.
+- For debug logging, set `window.VIVUS_DEBUG = true` before the script tag.
+
+## Colours
+
+Icons loaded by name come from `svgs/v2/`. These are copies of the originals whose strokes use CSS variables, and each variable falls back to the original colour. With nothing set they look exactly like the originals.
+
+```html
+<div data-svg="play" data-svg-accent="#ff6b6b"></div>                 <!-- coloured accent -->
+<div data-svg="play" data-svg-base="dark"></div>                      <!-- faint lines black, for light backgrounds -->
+<div data-svg="dh-logo" data-svg-accent="#fcee21"></div>              <!-- multi-colour icon in one colour -->
+<div data-svg="dh-logo" data-svg-accent-2="#ff6b6b"></div>            <!-- change just the yellow -->
+```
+
+Or set the variables in CSS on any parent (Webflow custom properties work too):
+
+```css
+.hero { --svg-accent: #ff6b6b; --svg-base: #000; }
+```
+
+| Variable | Applies to |
+|---|---|
+| `--svg-accent` | Accent strokes |
+| `--svg-accent-1`, `-2`, `-3` | Each colour of a multi-colour icon (falls back to `--svg-accent`) |
+| `--svg-base` | Faint strokes (always at 40% opacity) |
+
+The colour copies of icons aren't in `v2/`, because attributes replace them:
+
+| Original file | v2 equivalent |
+|---|---|
+| `X-black.svg` (book, business, contact, event, interviewer, mail, services) | `data-svg="X" data-svg-accent="#000"` |
+| `dh-logo-black.svg` | `data-svg="dh-logo" data-svg-accent="#000"` |
+| `dh-logo-white.svg` | `data-svg="dh-logo" data-svg-accent="#fff"` |
+| `dh-logo-yellow.svg` | `data-svg="dh-logo" data-svg-accent="#fcee21"` |
+| `interviewer-white.svg` | `data-svg="interviewer" data-svg-accent="#fff"` |
+
+### Adding a new icon
+
+1. Export from Illustrator into `svgs/` and run `process_svg.py` on it (unique class names).
+2. Generate its colourable copy:
+   ```bash
+   uv run python theme_svg.py ./svgs ./svgs/v2
+   ```
+   This rewrites `svgs/v2/` from the originals and never modifies `svgs/`. Rules that set `opacity` become base strokes, and other strokes become accents. Files ending `-black`, `-white` or `-yellow` are skipped.
+3. Add the name to `NAMES` in `test-themed.html`, open it, and check it reads `ALL PASS`.
+4. Run the tests:
+   ```bash
+   uv run pytest
+   ```
+
+### YAM icons (Inkscape)
+
+The YAM icons (`yam-building`, `yam-logo`, `yam-mail`, `yam-mic`, `yam-numeric1` to `yam-numeric4`, `yam-person`, `yam-speech`) come from Inkscape. Their sources are in `svgs/yam/` and exist only as v2, so they have no copy in `svgs/`. They have no base lines: everything is accent, which defaults to black.
+
+```html
+<div data-svg="yam-mail"></div>
+<div data-svg="yam-logo" data-svg-accent="#fcee21"></div>
+```
+
+Filled shapes, such as the numerals and the logo lettering, are visible from the start and get no outline. Vivus draws only the shapes that already have a stroke, like the speech bubbles. The accent colour sets both.
+
+To add or update one, save it into `svgs/yam/` and run:
+
+```bash
+uv run python theme_svg.py ./svgs/yam ./svgs/v2
+```
+
+Files without a `<style>` block are treated as Inkscape files. The converter strips editor data and IDs, and turns the colours in each shape's `style=""` into accent variables. `test-yam.html` shows every YAM icon on light and dark backgrounds.
+
+## Legacy method (per-page script)
+
+The original ID-based method still works unchanged, and existing sites need no changes. New pages should use the quick start above.
+
 ```html
   <!-- Vivus & Pathformer (CDN or local) -->
   <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
@@ -123,12 +221,32 @@ const normalized = rotationAPI.normalizeAngle(450); // Returns 90
 
 See [rotation-demo.html](rotation-demo.html) for a complete working example with multiple scenarios.
 
+### Rotating auto-loaded icons
+
+Rotation also works on quick-start placeholders. Give the placeholder an `id` and pass it to `initRotationControls`:
+
+```html
+<div id="pillars" data-svg="dh-logo-yellow"></div>
+<button id="90deg" data-rotate-target="pillars">90°</button>
+<script>
+  document.addEventListener('DOMContentLoaded', () => initRotationControls([{ containerId: 'pillars' }]));
+</script>
+```
+
+## Local testing
+
+```bash
+uv run --no-project python dev_server.py
+```
+
+Then open `http://localhost:8000/test-auto.html`. `test-themed.html` compares every original icon with its v2 copy pixel by pixel, and `uv run pytest` tests `theme_svg.py`. It's a self-checking page whose summary line reads `ALL PASS` or `N FAILED`. Keep the tab visible, because hidden tabs don't fire the scroll-into-view checks. `dev_server.py` disables caching so edits show up on reload.
+
 ## Issues
 **Issue:** When using multiple svgs, styling conflicts
 **Fix:** This is due to matching class names. Fix manually by renaming classes to be unique to the file. Or, run "process_svg.py" using the file name or directory as argument. The script will prepend all appearances of "cls" with a sanitised file name. This script features logic to skip already process files in a directory.
 **Example:**
 ```bash
-python3 process_svg.py ./svgs
+uv run --no-project python process_svg.py ./svgs
 ```
 
 **Issue:** SVG paths animate in the incorrect order.

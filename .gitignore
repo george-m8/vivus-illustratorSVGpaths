@@ -24,3 +24,7 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+# Python
+.venv/
+__pycache__/
+.pytest_cache/

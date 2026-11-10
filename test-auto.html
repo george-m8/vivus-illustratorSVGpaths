@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Auto-loader Tests</title>
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/src/pathformer.js"></script>
+  <script src="js/vivusObserver.js"></script>
+  <style>
+    body { margin: 0; padding: 20px; background: #222; color: #fff; font-family: sans-serif; }
+    #results { position: sticky; top: 0; background: #111; padding: 10px; z-index: 1; max-height: 40vh; overflow: auto; }
+    #results li.pass { color: #7f7; }
+    #results li.fail { color: #f77; }
+    section { margin: 40px 0; border-top: 1px solid #555; padding-top: 10px; }
+    .row { display: flex; gap: 20px; flex-wrap: wrap; }
+    .row > div { width: 120px; }
+    svg { width: 100%; height: auto; display: block; }
+    .spacer { height: 120vh; }
+  </style>
+</head>
+<body>
+  <!--
+    Self-checking test page. Open via a local server:
+      uv run --no-project python dev_server.py
+    then http://localhost:8000/test-auto.html
+    The summary line reads "ALL PASS" or "N FAILED".
+    Keep the tab visible: hidden tabs don't fire IntersectionObserver, so the
+    "animates when in view" checks fail there.
+  -->
+  <div id="results"><strong id="summary">Running...</strong><ul id="list"></ul></div>
+  <script>
+    // Timeline of data-svg-state changes, for debugging timing failures
+    window.stateLog = [];
+    new MutationObserver(muts => muts.forEach(m => stateLog.push([Math.round(performance.now()), m.target.id, m.target.dataset.svgState])))
+      .observe(document.documentElement, { subtree: true, attributeFilter: ['data-svg-state'] });
+  </script>
+
+  <section>
+    <h2>T2: single placeholders</h2>
+    <div class="row">
+      <div id="t2play" data-svg="play"></div>
+      <div id="t2path" data-svg="svgs/book.svg" data-svg-duration="10" data-svg-type="oneByOne"></div>
+      <div id="t2bad" data-svg="nope"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>T3: duplicates (scrolled into view one at a time)</h2>
+    <div class="spacer"></div>
+    <div class="row"><div id="t3dupA" data-svg="play"></div></div>
+    <div class="spacer"></div>
+    <div class="row"><div id="t3dupB" data-svg="play"></div></div>
+    <div class="spacer"></div>
+    <div class="component"><p>Component copy 1</p><div class="row"><div data-svg="events" class="t3comp"></div></div></div>
+    <div class="component"><p>Component copy 2</p><div class="row"><div data-svg="events" class="t3comp"></div></div></div>
+  </section>
+
+  <section>
+    <h2>T4: added after load</h2>
+    <button id="t4add" type="button">Add placeholders</button>
+    <div class="row" id="t4target"></div>
+  </section>
+
+  <section>
+    <h2>T5: legacy method and rotation alongside auto icons</h2>
+    <div class="row">
+      <div id="t5legacy"></div>
+      <div id="t5rot" data-svg="play"></div>
+    </div>
+    <button id="350deg" data-rotate-target="t5rot" type="button">350°</button>
+    <button id="10deg" data-rotate-target="t5rot" type="button">10°</button>
+  </section>
+  <script>
+    // Legacy embed, exactly as in embed.md
+    const legacyShapes = [{
+      containerId: 't5legacy',
+      svgUrl: 'svgs/mail.svg',
+      vivusOptions: { type: 'scenario-sync', duration: 36 },
+      vivusInstance: null,
+      isAnimated: false
+    }, {
+      containerId: 't10legacyInherit',
+      svgUrl: 'svgs/v2/mail.svg',
+      vivusOptions: { type: 'scenario-sync', duration: 36 },
+      vivusInstance: null,
+      isAnimated: false
+    }];
+    document.addEventListener('DOMContentLoaded', function () {
+      initGlobalStaggerObserver(legacyShapes, 0.5, false);
+    });
+  </script>
+
+  <section>
+    <h2>T10: colours</h2>
+    <div class="row">
+      <div id="t10default" data-svg="play"></div>
+      <div id="t10accent" data-svg="play" data-svg-accent="#ff00ff"></div>
+      <div id="t10dark" data-svg="play" data-svg-base="dark"></div>
+      <div id="t10custom" data-svg="play" data-svg-base="#00ff00"></div>
+    </div>
+    <div class="row">
+      <div id="t10logo" data-svg="dh-logo"></div>
+      <div id="t10logoOne" data-svg="dh-logo" data-svg-accent="#00ff00"></div>
+      <div id="t10logoTwo" data-svg="dh-logo" data-svg-accent-2="#ff00ff"></div>
+    </div>
+    <div class="row" style="--svg-accent: #00ffff">
+      <div id="t10inherit" data-svg="play"></div>
+      <div id="t10legacyInherit"></div>
+    </div>
+    <div class="row">
+      <div id="t10original" data-svg="svgs/play.svg"></div>
+      <div id="t10afterOriginal" data-svg="play" data-svg-accent="#ff00ff"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Rotation (legacy initRotationControls)</h2>
+    <div class="row"><div id="rotUnit"><svg viewBox="0 0 10 10"></svg></div></div>
+  </section>
+
+  <script>
+    const results = [];
+    function check(name, ok, detail) {
+      results.push({ name, ok: !!ok, detail });
+    }
+    function report() {
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+      results.forEach(r => {
+        const li = document.createElement('li');
+        li.className = r.ok ? 'pass' : 'fail';
+        li.textContent = `${r.ok ? 'PASS' : 'FAIL'} ${r.name}${r.ok || r.detail === undefined ? '' : ' - ' + JSON.stringify(r.detail)}`;
+        list.appendChild(li);
+      });
+      const failed = results.filter(r => !r.ok).length;
+      const summary = document.getElementById('summary');
+      summary.textContent = failed ? `${failed} FAILED` : 'ALL PASS';
+      summary.dataset.result = failed ? 'fail' : 'pass';
+    }
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+
+    async function testRotation() {
+      const api = initRotationControls([{ containerId: 'rotUnit' }], '[data-none]', 0, false);
+      const svg = document.querySelector('#rotUnit svg');
+      const seq = [];
+      for (const a of [350, 10]) { api.rotateSVG('rotUnit', a); seq.push(svg.style.transform); }
+      check('rotation 0 -> 350 -> 10 turns -10 then +20', seq[0] === 'rotate(-10deg)' && seq[1] === 'rotate(10deg)', seq);
+      check('rotation state reports normalised angle', api.getRotationState('rotUnit').currentAngle === 10, api.getRotationState('rotUnit'));
+
+      const seq2 = [];
+      for (const a of [270, 10, 720]) { api.rotateSVG('rotUnit', a); seq2.push(svg.style.transform); }
+      check('rotation 10 -> 270 -> 10 -> 720 stays on short path', seq2.join() === 'rotate(-90deg),rotate(10deg),rotate(0deg)', seq2);
+    }
+
+    async function waitForState(el, states, timeout = 4000) {
+      const start = Date.now();
+      while (Date.now() - start < timeout) {
+        if (states.includes(el.dataset.svgState)) return true;
+        await wait(50);
+      }
+      return false;
+    }
+
+    async function testSingle() {
+      const play = document.getElementById('t2play');
+      const path = document.getElementById('t2path');
+      const bad = document.getElementById('t2bad');
+
+      check('T2 name placeholder animates when in view', await waitForState(play, ['animated']), play.dataset.svgState);
+      check('T2 name placeholder contains an svg', !!play.querySelector('svg'));
+      check('T2 injected svg has no id', play.querySelector('svg') && !play.querySelector('svg').hasAttribute('id'));
+      const req = performance.getEntriesByType('resource').map(e => e.name);
+      check('T2 name resolves against script base', req.includes(`${location.origin}/svgs/v2/play.svg`), req.filter(u => u.endsWith('.svg')));
+
+      check('T2 path placeholder loads', await waitForState(path, ['ready', 'animated']), path.dataset.svgState);
+      const inst = typeof getVivusInstance === 'function' ? getVivusInstance(path) : null;
+      check('T2 duration/type attributes respected', inst && inst.duration === 10 && inst.type === 'oneByOne', inst && { d: inst.duration, t: inst.type });
+      const playInst = typeof getVivusInstance === 'function' ? getVivusInstance(play) : null;
+      check('T2 defaults are 36 / scenario-sync', playInst && playInst.duration === 36 && playInst.type === 'scenario-sync', playInst && { d: playInst.duration, t: playInst.type });
+
+      check('T2 bad name sets error state', await waitForState(bad, ['error']), bad.dataset.svgState);
+    }
+
+    function requestCount(file) {
+      return performance.getEntriesByType('resource').filter(e => e.name.endsWith(`/svgs/${file}`)).length;
+    }
+
+    async function testDuplicates() {
+      const a = document.getElementById('t3dupA');
+      const b = document.getElementById('t3dupB');
+      const comps = [...document.querySelectorAll('.t3comp')];
+
+      check('T3 duplicates load', await waitForState(a, ['ready']) && await waitForState(b, ['ready']), [a.dataset.svgState, b.dataset.svgState]);
+      check('T3 play.svg fetched once for three copies', requestCount('v2/play.svg') === 1, requestCount('v2/play.svg'));
+      check('T3 off-screen duplicates wait (not animated with the first copy)', a.dataset.svgState === 'ready' && b.dataset.svgState === 'ready', [a.dataset.svgState, b.dataset.svgState]);
+
+      a.scrollIntoView({ block: 'center' });
+      check('T3 first duplicate animates when scrolled to', await waitForState(a, ['animated']), a.dataset.svgState);
+      check('T3 second duplicate still waiting', b.dataset.svgState === 'ready', b.dataset.svgState);
+
+      b.scrollIntoView({ block: 'center' });
+      check('T3 second duplicate animates when scrolled to', await waitForState(b, ['animated']), b.dataset.svgState);
+
+      comps[0].scrollIntoView({ block: 'center' });
+      check('T3 component copies both render', await waitForState(comps[0], ['animated']) && await waitForState(comps[1], ['ready', 'animated']), comps.map(c => c.dataset.svgState));
+      check('T3 events.svg fetched once for two components', requestCount('v2/events.svg') === 1, requestCount('v2/events.svg'));
+
+      const ids = [...document.querySelectorAll('[id]')].map(e => e.id);
+      const dupIds = ids.filter((id, i) => ids.indexOf(id) !== i);
+      check('T3 no duplicate ids on the page', dupIds.length === 0, dupIds);
+      window.scrollTo(0, 0);
+    }
+
+    // Simulates Webflow tabs/CMS "load more": wraps placeholders in a new subtree
+    document.getElementById('t4add').addEventListener('click', () => {
+      const wrap = document.createElement('div');
+      wrap.className = 'row';
+      wrap.innerHTML = '<div class="t4new" data-svg="consult"></div><div class="t4new" data-svg="play"></div>';
+      document.getElementById('t4target').appendChild(wrap);
+    });
+
+    async function testLateContent() {
+      const target = document.getElementById('t4target');
+      target.scrollIntoView({ block: 'center' });
+      const playBefore = requestCount('v2/play.svg');
+      document.getElementById('t4add').click();
+      const [consult, play] = document.querySelectorAll('.t4new');
+
+      check('T4 late placeholder renders and animates', await waitForState(consult, ['animated']), consult.dataset.svgState);
+      check('T4 late duplicate animates', await waitForState(play, ['animated']), play.dataset.svgState);
+      check('T4 late duplicate reuses cached fetch', requestCount('v2/play.svg') === playBefore, [playBefore, requestCount('v2/play.svg')]);
+
+      const svgBefore = consult.querySelector('svg');
+      target.appendChild(consult); // move an already-processed element
+      await wait(200);
+      check('T4 moving a processed element does not reload it', consult.querySelector('svg') === svgBefore && consult.dataset.svgState === 'animated', consult.dataset.svgState);
+      window.scrollTo(0, 0);
+    }
+
+    async function testLegacyCoexistence() {
+      const legacy = document.getElementById('t5legacy');
+      const rot = document.getElementById('t5rot');
+      legacy.scrollIntoView({ block: 'center' });
+
+      const start = Date.now();
+      while (!legacyShapes[0].isAnimated && Date.now() - start < 4000) await wait(50);
+      check('T5 legacy block renders and animates next to auto icons', legacy.querySelector('svg') && legacyShapes[0].isAnimated);
+      check('T5 auto-loader ignores legacy containers', legacy.dataset.svgState === undefined, legacy.dataset.svgState);
+
+      check('T5 rotatable auto icon loads', await waitForState(rot, ['ready', 'animated']), rot.dataset.svgState);
+      check('T5 placeholder keeps its id', rot.id === 't5rot');
+      initRotationControls([{ containerId: 't5rot' }], '[data-rotate-target]', 0, false);
+      const svg = rot.querySelector('svg');
+      const seq = [];
+      for (const id of ['350deg', '10deg']) { document.getElementById(id).click(); seq.push(svg.style.transform); }
+      check('T5 legacy rotation controls rotate an auto-loaded icon', seq.join() === 'rotate(-10deg),rotate(10deg)', seq);
+      window.scrollTo(0, 0);
+    }
+
+    const YELLOW = 'rgb(252, 238, 33)';
+    const MAGENTA = 'rgb(255, 0, 255)';
+    const GREEN = 'rgb(0, 255, 0)';
+    function strokeOf(id, selector) {
+      const el = document.querySelector(`#${id} ${selector}`);
+      return el ? getComputedStyle(el).stroke : null;
+    }
+
+    async function testColours() {
+      const ids = ['t10default', 't10accent', 't10dark', 't10custom', 't10logo', 't10logoOne', 't10logoTwo', 't10inherit', 't10original', 't10afterOriginal'];
+      for (const id of ids) await waitForState(document.getElementById(id), ['ready', 'animated']);
+      const legacyStart = Date.now();
+      while (!document.querySelector('#t10legacyInherit svg') && Date.now() - legacyStart < 4000) await wait(50);
+
+      const accent = '.play-v2-cls-1';
+      const base = '.play-v2-cls-2';
+      check('T10 default copy keeps original accent', strokeOf('t10default', accent) === YELLOW, strokeOf('t10default', accent));
+      check('T10 data-svg-accent recolours only that instance', strokeOf('t10accent', accent) === MAGENTA, strokeOf('t10accent', accent));
+      check('T10 default base is white', strokeOf('t10default', base) === 'rgb(255, 255, 255)', strokeOf('t10default', base));
+      check('T10 data-svg-base="dark" makes base black', strokeOf('t10dark', base) === 'rgb(0, 0, 0)', strokeOf('t10dark', base));
+      check('T10 data-svg-base takes a custom colour', strokeOf('t10custom', base) === GREEN, strokeOf('t10custom', base));
+
+      const logo = n => `.dh-logo-v2-cls-${n}`;
+      check('T10 dh-logo defaults to three colours', [1, 2, 3].map(n => strokeOf('t10logo', logo(n))).join('|') === 'rgb(237, 28, 36)|' + YELLOW + '|rgb(63, 169, 245)', [1, 2, 3].map(n => strokeOf('t10logo', logo(n))));
+      check('T10 data-svg-accent makes dh-logo one colour', [1, 2, 3].every(n => strokeOf('t10logoOne', logo(n)) === GREEN), [1, 2, 3].map(n => strokeOf('t10logoOne', logo(n))));
+      check('T10 data-svg-accent-2 changes only the yellow', strokeOf('t10logoTwo', logo(2)) === MAGENTA && strokeOf('t10logoTwo', logo(1)) === 'rgb(237, 28, 36)', [1, 2, 3].map(n => strokeOf('t10logoTwo', logo(n))));
+
+      check('T10 ancestor --svg-accent recolours auto icon', strokeOf('t10inherit', accent) === 'rgb(0, 255, 255)', strokeOf('t10inherit', accent));
+      check('T10 ancestor --svg-accent recolours legacy icon', strokeOf('t10legacyInherit', '.mail-v2-cls-1') === 'rgb(0, 255, 255)', strokeOf('t10legacyInherit', '.mail-v2-cls-1'));
+
+      const req = performance.getEntriesByType('resource').map(e => e.name);
+      check('T10 full path still loads the original', req.includes(`${location.origin}/svgs/play.svg`) && !!document.querySelector('#t10original .play-cls-1'));
+      check('T10 original on the page does not override v2 colours', strokeOf('t10afterOriginal', accent) === MAGENTA, strokeOf('t10afterOriginal', accent));
+      check('T10 original keeps its own colour', strokeOf('t10original', '.play-cls-1') === YELLOW, strokeOf('t10original', '.play-cls-1'));
+    }
+
+    window.addEventListener('load', async () => {
+      await testColours();
+      await testSingle();
+      await testDuplicates();
+      await testLateContent();
+      await testLegacyCoexistence();
+      await testRotation();
+      report();
+    });
+  </script>
+</body>
+</html>

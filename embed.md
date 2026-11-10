@@ -1,4 +1,4 @@
-## Head code
+## Head code (site-wide, once)
 ```html
   <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/src/pathformer.js"></script>
@@ -6,12 +6,32 @@
   <script src="https://vivus-svgs.netlify.app/js/vivusObserver.js"></script>
 ```
 
-## SVG container example (Place above body script)
+## Placeholder (anywhere, any page)
+```html
+<div data-svg="play"></div>
+```
+
+Optional attributes: `data-svg-duration="36"`, `data-svg-type="scenario-sync"`, and colours:
+
+```html
+<div data-svg="contact" data-svg-accent="#000"></div>      <!-- replaces contact-black.svg -->
+<div data-svg="play" data-svg-base="dark"></div>           <!-- faint lines black -->
+```
+
+See [readme.md](readme.md#colours) for all colour options and the table of old variant files.
+
+The same icon can be used any number of times on a page. No body script or IDs needed. See [readme.md](readme.md#quick-start-recommended) for details.
+
+---
+
+## Legacy method (still supported)
+
+### SVG container example (Place above body script)
 ```html
 <div id="playShapeContainer"></div> <!-- ID is must match script below -->
 ```
 
-## Body script (Place below SVG containers)
+### Body script (Place below SVG containers)
 ```html
 <script>
     document.addEventListener('DOMContentLoaded', function() {

@@ -168,8 +168,9 @@ function initRotationControls(shapeConfigs, controlSelector = '[data-rotate-targ
   // Initialize rotation state for each shape
   shapeConfigs.forEach(cfg => {
     rotationState[cfg.containerId] = {
-      currentAngle: 0,
-      targetAngle: 0
+      currentAngle: 0,   // normalised 0-360, reported via getRotationState
+      targetAngle: 0,
+      appliedAngle: 0    // running CSS rotate() value, may go beyond 0-360
     };
   });
   
@@ -229,7 +230,9 @@ function initRotationControls(shapeConfigs, controlSelector = '[data-rotate-targ
     
     // Calculate shortest path
     const delta = calculateShortestPath(state.currentAngle, targetAngle);
-    const newAngle = state.currentAngle + delta;
+    // Build on the angle actually applied, so the CSS transition always
+    // moves by `delta` (applying currentAngle + delta could spin the long way)
+    const newAngle = state.appliedAngle + delta;
     
     if (debug) {
       console.log(`[initRotationControls] Rotating ${containerId}:`, {
@@ -245,8 +248,9 @@ function initRotationControls(shapeConfigs, controlSelector = '[data-rotate-targ
     svg.style.transformOrigin = 'center center';
     svg.style.transform = `rotate(${newAngle}deg)`;
     
-    // Update state - store the actual rotation value (may exceed 360)
-    // but keep targetAngle normalized for future calculations
+    // Update state - appliedAngle keeps the running value (may exceed 360),
+    // currentAngle/targetAngle stay normalised for path calculations
+    state.appliedAngle = newAngle;
     state.currentAngle = targetAngle;
     state.targetAngle = targetAngle;
   }
@@ -300,4 +304,189 @@ function initRotationControls(shapeConfigs, controlSelector = '[data-rotate-targ
     getRotationState: (containerId) => rotationState[containerId],
     normalizeAngle: normalizeAngle
   };
+}
+
+/* ==========================================================================
+ * Auto-loader
+ *
+ * Finds placeholders like <div data-svg="play"></div> on any page and draws
+ * them, with no per-page script. Attributes:
+ *   data-svg           SVG name ("play" -> <base>/svgs/v2/play.svg) or a URL/path
+ *   data-svg-duration  Vivus duration (default 36)
+ *   data-svg-type      Vivus type (default "scenario-sync")
+ *   data-svg-accent    Accent stroke colour (sets --svg-accent)
+ *   data-svg-accent-1..3  Per-colour accents for multi-colour icons (dh-logo)
+ *   data-svg-base      Faint strokes: "light" (#fff), "dark" (#000) or any colour
+ *   data-svg-state     Set by the loader: loading | ready | animated | error
+ *
+ * Set window.VIVUS_DEBUG = true for debug logging.
+ * ========================================================================== */
+
+/**
+ * VIVUS_BASE_URL: where this script is served from (captured now, because
+ * document.currentScript is null inside callbacks). Names resolve against it.
+ */
+const VIVUS_BASE_URL = (function () {
+  try {
+    const script = document.currentScript;
+    if (script && script.src) return new URL('..', script.src).href.replace(/\/$/, '');
+  } catch (e) { /* fall through */ }
+  return 'https://vivus-svgs.netlify.app';
+})();
+
+const AUTO_DEFAULT_DURATION = 36;
+const AUTO_DEFAULT_TYPE = 'scenario-sync';
+const AUTO_THRESHOLD = 0.5;
+
+const autoSvgCache = new Map();        // url -> Promise<string>
+const autoInstances = new WeakMap();   // placeholder element -> Vivus instance
+const autoScheduled = new WeakSet();   // placeholders already queued to animate
+let autoObserver = null;
+let autoGlobalDelay = 0;
+let autoDecayTimer = null;
+
+function autoDebug(...args) {
+  if (window.VIVUS_DEBUG) console.log('[vivusAuto]', ...args);
+}
+
+/**
+ * resolveSvgUrl
+ * Turns a data-svg value into a fetchable URL.
+ */
+function resolveSvgUrl(value) {
+  if (value.includes('/') || value.endsWith('.svg')) return value;
+  return `${VIVUS_BASE_URL}/svgs/v2/${value}.svg`;
+}
+
+const BASE_PRESETS = { light: '#fff', dark: '#000' };
+
+/**
+ * applyColours
+ * Copies colour attributes onto the placeholder as CSS variables, which the
+ * v2 SVGs inherit. Unset attributes leave the SVG's own defaults in place.
+ */
+function applyColours(element) {
+  const set = (name, value) => { if (value) element.style.setProperty(name, value); };
+  set('--svg-accent', element.getAttribute('data-svg-accent'));
+  [1, 2, 3].forEach(n => set(`--svg-accent-${n}`, element.getAttribute(`data-svg-accent-${n}`)));
+  const base = element.getAttribute('data-svg-base');
+  set('--svg-base', BASE_PRESETS[base] || base);
+}
+
+/**
+ * fetchSvgText
+ * Fetches each URL once; duplicates share the same promise.
+ */
+function fetchSvgText(url) {
+  if (!autoSvgCache.has(url)) {
+    autoSvgCache.set(url, fetch(url).then(response => {
+      if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+      return response.text();
+    }));
+  }
+  return autoSvgCache.get(url);
+}
+
+/**
+ * getVivusInstance
+ * Returns the Vivus instance for an auto-loaded placeholder (or undefined).
+ */
+function getVivusInstance(element) {
+  return autoInstances.get(element);
+}
+
+/**
+ * scheduleAutoAnimation
+ * Same stagger rules as initGlobalStaggerObserver, on one shared timeline.
+ */
+function scheduleAutoAnimation(element) {
+  autoDebug(`Scheduling ${element.dataset.svg}; delay=${autoGlobalDelay}ms`);
+  setTimeout(() => {
+    autoInstances.get(element).play();
+    element.dataset.svgState = 'animated';
+  }, autoGlobalDelay);
+
+  autoGlobalDelay += STAGGER_DELAY;
+  if (autoDecayTimer) clearTimeout(autoDecayTimer);
+  autoDecayTimer = setTimeout(() => { autoGlobalDelay = 0; }, DECAY_TIMEOUT);
+}
+
+function getAutoObserver() {
+  if (!autoObserver) {
+    autoObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting || autoScheduled.has(entry.target)) return;
+        autoScheduled.add(entry.target);
+        autoObserver.unobserve(entry.target);
+        scheduleAutoAnimation(entry.target);
+      });
+    }, { threshold: AUTO_THRESHOLD });
+  }
+  return autoObserver;
+}
+
+/**
+ * loadPlaceholder
+ * Fetches, injects and prepares one placeholder, then waits for it to be seen.
+ */
+function loadPlaceholder(element) {
+  element.dataset.svgState = 'loading';
+  applyColours(element);
+  const url = resolveSvgUrl(element.dataset.svg);
+  autoDebug(`Loading ${url}`);
+
+  fetchSvgText(url)
+    .then(svgText => {
+      element.innerHTML = svgText;
+      const svgElem = element.querySelector('svg');
+      if (!svgElem) throw new Error(`No <svg> found in ${url}`);
+      svgElem.removeAttribute('id'); // avoid duplicate ids when an icon repeats
+
+      new Pathformer(svgElem);
+      autoInstances.set(element, new Vivus(svgElem, {
+        type: element.dataset.svgType || AUTO_DEFAULT_TYPE,
+        duration: Number(element.dataset.svgDuration) || AUTO_DEFAULT_DURATION,
+        start: 'manual'
+      }));
+
+      element.dataset.svgState = 'ready';
+      getAutoObserver().observe(element);
+    })
+    .catch(err => {
+      element.dataset.svgState = 'error';
+      console.error('[vivusAuto] Error:', err);
+    });
+}
+
+/**
+ * scanForPlaceholders
+ * Loads every unprocessed [data-svg] in root (including root itself).
+ */
+function scanForPlaceholders(root) {
+  const found = [];
+  if (root.matches && root.matches('[data-svg]')) found.push(root);
+  if (root.querySelectorAll) found.push(...root.querySelectorAll('[data-svg]'));
+  found.filter(el => !el.dataset.svgState).forEach(loadPlaceholder);
+}
+
+/**
+ * startAutoLoader
+ * Scans the page once, then watches for placeholders added later
+ * (Webflow tabs, sliders, CMS "load more").
+ */
+function startAutoLoader() {
+  scanForPlaceholders(document);
+  new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE) scanForPlaceholders(node);
+      });
+    });
+  }).observe(document.body, { childList: true, subtree: true });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startAutoLoader);
+} else {
+  startAutoLoader();
 }

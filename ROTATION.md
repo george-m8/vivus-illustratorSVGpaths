@@ -148,3 +148,11 @@ Current: 10°  → Target: 350° → Rotates: -20°  (via 0°)
 ```
 
 The algorithm always chooses the path with the smallest absolute rotation!
+
+## Auto-loaded icons
+
+Rotation works on `data-svg` placeholders too (see [readme.md](readme.md#rotating-auto-loaded-icons)). Give the placeholder an `id` and pass `[{ containerId: '<id>' }]` to `initRotationControls`.
+
+## Fix: long spins after wrapping past 0°
+
+Older versions stored the normalised angle but applied the un-normalised one, so some sequences spun the long way round. For example, 0° → 350° → 10° turned a full 380°. The running applied angle is now tracked separately, so every click turns by at most 180°. `getRotationState().currentAngle` still reports 0-360°.
