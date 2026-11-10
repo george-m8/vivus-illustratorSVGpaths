@@ -108,13 +108,13 @@ uv run python -m http.server 8000
 **Description:** Add test sections to `test-auto.html`: a legacy `initGlobalStaggerObserver` block on the same page as auto icons, and `initRotationControls([{ containerId: 'autoRot' }])` rotating an auto-loaded `<div id="autoRot" data-svg="play">`. Fix anything that doesn't work.
 
 **Acceptance criteria:**
-- [ ] The legacy block and auto icons both render and animate on the same page
-- [ ] Rotation buttons rotate the auto-loaded icon, including the 0° → 350° → 10° sequence
-- [ ] The placeholder keeps its `id`, and only the injected `<svg>` loses its own
+- [x] The legacy block and auto icons both render and animate on the same page
+- [x] Rotation buttons rotate the auto-loaded icon, including the 0° → 350° → 10° sequence
+- [x] The placeholder keeps its `id`, and only the injected `<svg>` loses its own
 
 **Verification:**
-- [ ] Manual: `test-auto.html` legacy and rotation sections
-- [ ] Manual: `rotation-example.html`, `rotation-demo.html`, `test-rotation.html` and `index.html` all behave as before
+- [x] Manual: `test-auto.html` legacy and rotation sections
+- [x] Manual: `rotation-example.html`, `rotation-demo.html`, `test-rotation.html` and `index.html` all behave as before
 
 **Dependencies:** T1, T2
 **Files likely touched:** `test-auto.html`, possibly `js/vivusObserver.js`

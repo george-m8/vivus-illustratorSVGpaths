@@ -62,6 +62,29 @@
   </section>
 
   <section>
+    <h2>T5: legacy method and rotation alongside auto icons</h2>
+    <div class="row">
+      <div id="t5legacy"></div>
+      <div id="t5rot" data-svg="play"></div>
+    </div>
+    <button id="350deg" data-rotate-target="t5rot" type="button">350°</button>
+    <button id="10deg" data-rotate-target="t5rot" type="button">10°</button>
+  </section>
+  <script>
+    // Legacy embed, exactly as in embed.md
+    const legacyShapes = [{
+      containerId: 't5legacy',
+      svgUrl: 'svgs/mail.svg',
+      vivusOptions: { type: 'scenario-sync', duration: 36 },
+      vivusInstance: null,
+      isAnimated: false
+    }];
+    document.addEventListener('DOMContentLoaded', function () {
+      initGlobalStaggerObserver(legacyShapes, 0.5, false);
+    });
+  </script>
+
+  <section>
     <h2>Rotation (legacy initRotationControls)</h2>
     <div class="row"><div id="rotUnit"><svg viewBox="0 0 10 10"></svg></div></div>
   </section>
@@ -185,10 +208,31 @@
       window.scrollTo(0, 0);
     }
 
+    async function testLegacyCoexistence() {
+      const legacy = document.getElementById('t5legacy');
+      const rot = document.getElementById('t5rot');
+      legacy.scrollIntoView({ block: 'center' });
+
+      const start = Date.now();
+      while (!legacyShapes[0].isAnimated && Date.now() - start < 4000) await wait(50);
+      check('T5 legacy block renders and animates next to auto icons', legacy.querySelector('svg') && legacyShapes[0].isAnimated);
+      check('T5 auto-loader ignores legacy containers', legacy.dataset.svgState === undefined, legacy.dataset.svgState);
+
+      check('T5 rotatable auto icon loads', await waitForState(rot, ['ready', 'animated']), rot.dataset.svgState);
+      check('T5 placeholder keeps its id', rot.id === 't5rot');
+      initRotationControls([{ containerId: 't5rot' }], '[data-rotate-target]', 0, false);
+      const svg = rot.querySelector('svg');
+      const seq = [];
+      for (const id of ['350deg', '10deg']) { document.getElementById(id).click(); seq.push(svg.style.transform); }
+      check('T5 legacy rotation controls rotate an auto-loaded icon', seq.join() === 'rotate(-10deg),rotate(10deg)', seq);
+      window.scrollTo(0, 0);
+    }
+
     window.addEventListener('load', async () => {
       await testSingle();
       await testDuplicates();
       await testLateContent();
+      await testLegacyCoexistence();
       await testRotation();
       report();
     });
