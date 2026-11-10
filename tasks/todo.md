@@ -231,6 +231,6 @@ uv run python -m http.server 8000
 **Estimated scope:** XS
 
 ## Checkpoint D: complete
-- [ ] All success criteria in both specs are ticked
-- [ ] `uv run pytest` passes, and the legacy demo pages are unchanged
+- [x] All success criteria in both specs are ticked
+- [x] `uv run pytest` passes, and the legacy demo pages are unchanged
 - [ ] Human review → merge to `main` (deploys live)

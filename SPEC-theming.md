@@ -113,15 +113,15 @@ Python follows `process_svg.py`: plain functions, `main()` with `sys.argv`, and 
 
 ## Success Criteria
 
-- [ ] Every top-level `svgs/X.svg` (except colour variants) has a `svgs/v2/X.svg` that uses `--svg-*` variables for stroke colours and, with no variables set, looks the same as the original.
-- [ ] `git diff svgs/*.svg` is empty: the originals are unchanged.
-- [ ] `data-svg="play"` loads `svgs/v2/play.svg`, and `data-svg="svgs/play.svg"` loads the original.
-- [ ] `data-svg-accent="#f0f"` recolours only that instance. A second copy of the same icon nearby keeps its default.
-- [ ] `data-svg-base="dark"` switches base strokes to `#000` at `.4` opacity.
-- [ ] `dh-logo` with no attributes shows red, yellow and blue. `data-svg-accent` turns it into one colour, and `data-svg-accent-2` changes only the yellow.
-- [ ] Setting `--svg-accent` on an ancestor in CSS recolours the icons inside it, on both the auto and legacy paths.
-- [ ] `uv run pytest` passes, and running the script twice changes nothing the second time.
-- [ ] The readme documents the variables, attributes and script.
+- [x] Every top-level `svgs/X.svg` (except colour variants) has a `svgs/v2/X.svg` that uses `--svg-*` variables for stroke colours and, with no variables set, looks the same as the original.
+- [x] `git diff svgs/*.svg` is empty: the originals are unchanged.
+- [x] `data-svg="play"` loads `svgs/v2/play.svg`, and `data-svg="svgs/play.svg"` loads the original.
+- [x] `data-svg-accent="#f0f"` recolours only that instance. A second copy of the same icon nearby keeps its default.
+- [x] `data-svg-base="dark"` switches base strokes to `#000` at `.4` opacity.
+- [x] `dh-logo` with no attributes shows red, yellow and blue. `data-svg-accent` turns it into one colour, and `data-svg-accent-2` changes only the yellow.
+- [x] Setting `--svg-accent` on an ancestor in CSS recolours the icons inside it, on both the auto and legacy paths.
+- [x] `uv run pytest` passes, and running the script twice changes nothing the second time.
+- [x] The readme documents the variables, attributes and script.
 
 ## Open Questions
 

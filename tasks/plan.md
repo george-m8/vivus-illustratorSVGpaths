@@ -79,7 +79,7 @@ T1 and T7-T9 don't depend on the loader and could run in parallel with T2-T4. Th
 - [x] T11: Document theming
 
 ### Checkpoint D: complete
-- [ ] All success criteria in both specs are met
+- [x] All success criteria in both specs are met
 - [ ] Human review → merge
 
 ## Risks and mitigations
