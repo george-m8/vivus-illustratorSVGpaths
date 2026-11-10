@@ -11,7 +11,16 @@
 <div data-svg="play"></div>
 ```
 
-Optional attributes: `data-svg-duration="36"`, `data-svg-type="scenario-sync"`. The same icon can be used any number of times on a page. No body script or IDs needed. See [readme.md](readme.md#quick-start-recommended) for details.
+Optional attributes: `data-svg-duration="36"`, `data-svg-type="scenario-sync"`, and colours:
+
+```html
+<div data-svg="contact" data-svg-accent="#000"></div>      <!-- replaces contact-black.svg -->
+<div data-svg="play" data-svg-base="dark"></div>           <!-- faint lines black -->
+```
+
+See [readme.md](readme.md#colours) for all colour options and the table of old variant files.
+
+The same icon can be used any number of times on a page. No body script or IDs needed. See [readme.md](readme.md#quick-start-recommended) for details.
 
 ---
 

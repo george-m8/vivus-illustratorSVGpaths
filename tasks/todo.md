@@ -220,11 +220,11 @@ uv run python -m http.server 8000
 **Description:** Add a theming section to the readme covering the variables, attributes, `light`/`dark`, the multi-accent icons and how to add a new icon (put it in `svgs/`, then run the script). Add a colour example to `embed.md`, plus a table mapping old variant files to v2 attributes (e.g. `contact-black.svg` → `data-svg="contact" data-svg-accent="#000"`, `dh-logo-yellow.svg` → `data-svg="dh-logo" data-svg-accent="#fcee21"`).
 
 **Acceptance criteria:**
-- [ ] The readme documents every variable and attribute in the theming spec
-- [ ] The "add a new icon" steps use `uv run`
+- [x] The readme documents every variable and attribute in the theming spec
+- [x] The "add a new icon" steps use `uv run`
 
 **Verification:**
-- [ ] Manual: follow the readme to add a test icon end to end, then delete it
+- [x] Manual: follow the readme to add a test icon end to end, then delete it
 
 **Dependencies:** T10
 **Files likely touched:** `readme.md`, `embed.md`

@@ -76,7 +76,7 @@ T1 and T7-T9 don't depend on the loader and could run in parallel with T2-T4. Th
 - [x] `uv run pytest` passes, every v2 icon matches its original, and `git diff svgs/*.svg` is empty
 
 - [x] T10: Loader applies colour attributes and resolves names to `svgs/v2/`
-- [ ] T11: Document theming
+- [x] T11: Document theming
 
 ### Checkpoint D: complete
 - [ ] All success criteria in both specs are met

@@ -20,15 +20,65 @@ Placeholder, anywhere on any page (inside components too, as many times as you l
 
 | Attribute | Default | Meaning |
 |---|---|---|
-| `data-svg` | (required) | An SVG name (`play` loads `svgs/play.svg` from wherever `vivusObserver.js` is served), or a full URL/path (anything containing `/` or ending `.svg`) |
+| `data-svg` | (required) | An SVG name (`play` loads the colourable `svgs/v2/play.svg` from wherever `vivusObserver.js` is served), or a full URL/path (anything containing `/` or ending `.svg`), e.g. `svgs/play.svg` for the original |
 | `data-svg-duration` | `36` | Vivus `duration` |
 | `data-svg-type` | `scenario-sync` | Vivus `type` |
+| `data-svg-accent` | the icon's own colour | Accent stroke colour, any CSS colour |
+| `data-svg-base` | white | Faint strokes: `light` (white), `dark` (black) or any CSS colour |
+| `data-svg-accent-1`, `-2`, `-3` | the icon's own colours | Individual colours of multi-colour icons (`dh-logo`: red, yellow, blue) |
 | `data-svg-state` | (set by the script) | `loading`, `ready`, `animated` or `error`. Useful for styling and debugging. |
 
 - Each copy of an icon animates on its own as it scrolls into view, and each SVG file is downloaded only once per page.
 - Placeholders added after the page loads (tabs, sliders, CMS "load more") are picked up automatically.
 - A bad name sets `data-svg-state="error"` and logs one console error. Other icons still load.
 - For debug logging, set `window.VIVUS_DEBUG = true` before the script tag.
+
+## Colours
+
+Icons loaded by name come from `svgs/v2/`. These are copies of the originals whose strokes use CSS variables, and each variable falls back to the original colour. With nothing set they look exactly like the originals.
+
+```html
+<div data-svg="play" data-svg-accent="#ff6b6b"></div>                 <!-- coloured accent -->
+<div data-svg="play" data-svg-base="dark"></div>                      <!-- faint lines black, for light backgrounds -->
+<div data-svg="dh-logo" data-svg-accent="#fcee21"></div>              <!-- multi-colour icon in one colour -->
+<div data-svg="dh-logo" data-svg-accent-2="#ff6b6b"></div>            <!-- change just the yellow -->
+```
+
+Or set the variables in CSS on any parent (Webflow custom properties work too):
+
+```css
+.hero { --svg-accent: #ff6b6b; --svg-base: #000; }
+```
+
+| Variable | Applies to |
+|---|---|
+| `--svg-accent` | Accent strokes |
+| `--svg-accent-1`, `-2`, `-3` | Each colour of a multi-colour icon (falls back to `--svg-accent`) |
+| `--svg-base` | Faint strokes (always at 40% opacity) |
+
+The colour copies of icons aren't in `v2/`, because attributes replace them:
+
+| Original file | v2 equivalent |
+|---|---|
+| `X-black.svg` (book, business, contact, event, interviewer, mail, services) | `data-svg="X" data-svg-accent="#000"` |
+| `dh-logo-black.svg` | `data-svg="dh-logo" data-svg-accent="#000"` |
+| `dh-logo-white.svg` | `data-svg="dh-logo" data-svg-accent="#fff"` |
+| `dh-logo-yellow.svg` | `data-svg="dh-logo" data-svg-accent="#fcee21"` |
+| `interviewer-white.svg` | `data-svg="interviewer" data-svg-accent="#fff"` |
+
+### Adding a new icon
+
+1. Export from Illustrator into `svgs/` and run `process_svg.py` on it (unique class names).
+2. Generate its colourable copy:
+   ```bash
+   uv run python theme_svg.py ./svgs ./svgs/v2
+   ```
+   This rewrites `svgs/v2/` from the originals and never modifies `svgs/`. Rules that set `opacity` become base strokes, and other strokes become accents. Files ending `-black`, `-white` or `-yellow` are skipped.
+3. Add the name to `NAMES` in `test-themed.html`, open it, and check it reads `ALL PASS`.
+4. Run the tests:
+   ```bash
+   uv run pytest
+   ```
 
 ## Legacy method (per-page script)
 
@@ -170,7 +220,7 @@ Rotation also works on quick-start placeholders. Give the placeholder an `id` an
 uv run --no-project python dev_server.py
 ```
 
-Then open `http://localhost:8000/test-auto.html`. It's a self-checking page whose summary line reads `ALL PASS` or `N FAILED`. Keep the tab visible, because hidden tabs don't fire the scroll-into-view checks. `dev_server.py` disables caching so edits show up on reload.
+Then open `http://localhost:8000/test-auto.html`. `test-themed.html` compares every original icon with its v2 copy pixel by pixel, and `uv run pytest` tests `theme_svg.py`. It's a self-checking page whose summary line reads `ALL PASS` or `N FAILED`. Keep the tab visible, because hidden tabs don't fire the scroll-into-view checks. `dev_server.py` disables caching so edits show up on reload.
 
 ## Issues
 **Issue:** When using multiple svgs, styling conflicts
