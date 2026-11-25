@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vivus SVG Animation Grid</title>
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/src/pathformer.js"></script>
+  <script src="/js/vivusObserver.js"></script>
+  <style>
+    body {
+      background: grey;
+      color: white;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .svgContainer {
+      width: 300px;
+      max-width: 100%;
+      margin: 20px;
+      border: 2px solid white;
+      padding: 10px;
+      text-align: center;
+    }
+    h2 {
+      color: white;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<div class="itemWrapper">
+    <h2>triangle.svg</h2>
+    <div id="triangleContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>contact.svg</h2>
+    <div id="contactContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>book-alt.svg</h2>
+    <div id="book-altContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>interviewer-black.svg</h2>
+    <div id="interviewer-blackContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>events.svg</h2>
+    <div id="eventsContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>arrow.svg</h2>
+    <div id="arrowContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>dh-logo.svg</h2>
+    <div id="dh-logoContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>services.svg</h2>
+    <div id="servicesContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>interviewer.svg</h2>
+    <div id="interviewerContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>numeric1-right.svg</h2>
+    <div id="numeric1-rightContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>question.svg</h2>
+    <div id="questionContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>book-black.svg</h2>
+    <div id="book-blackContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>question-right.svg</h2>
+    <div id="question-rightContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>dh-logo-black.svg</h2>
+    <div id="dh-logo-blackContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>mail.svg</h2>
+    <div id="mailContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>book.svg</h2>
+    <div id="bookContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>event.svg</h2>
+    <div id="eventContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>mail-black.svg</h2>
+    <div id="mail-blackContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>numeric2.svg</h2>
+    <div id="numeric2Container" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>numeric3.svg</h2>
+    <div id="numeric3Container" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>numeric1.svg</h2>
+    <div id="numeric1Container" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>consult.svg</h2>
+    <div id="consultContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>play.svg</h2>
+    <div id="playContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>form.svg</h2>
+    <div id="formContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>numeric3-right.svg</h2>
+    <div id="numeric3-rightContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>contact-black.svg</h2>
+    <div id="contact-blackContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>business.svg</h2>
+    <div id="businessContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>dh-logo-white.svg</h2>
+    <div id="dh-logo-whiteContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>fiftyk.svg</h2>
+    <div id="fiftykContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>event-black.svg</h2>
+    <div id="event-blackContainer" class="svgContainer">
+    </div>
+  </div>
+
+  <div class="itemWrapper">
+    <h2>numeric2-right.svg</h2>
+    <div id="numeric2-rightContainer" class="svgContainer">
+    </div>
+  </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const shapes = [
+{
+        containerId: 'triangleContainer',
+        svgUrl: './svgs/triangle.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'contactContainer',
+        svgUrl: './svgs/contact.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'book-altContainer',
+        svgUrl: './svgs/book-alt.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'interviewer-blackContainer',
+        svgUrl: './svgs/interviewer-black.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'eventsContainer',
+        svgUrl: './svgs/events.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'arrowContainer',
+        svgUrl: './svgs/arrow.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'dh-logoContainer',
+        svgUrl: './svgs/dh-logo.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'servicesContainer',
+        svgUrl: './svgs/services.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'interviewerContainer',
+        svgUrl: './svgs/interviewer.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'numeric1-rightContainer',
+        svgUrl: './svgs/numeric1-right.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'questionContainer',
+        svgUrl: './svgs/question.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'book-blackContainer',
+        svgUrl: './svgs/book-black.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'question-rightContainer',
+        svgUrl: './svgs/question-right.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'dh-logo-blackContainer',
+        svgUrl: './svgs/dh-logo-black.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'mailContainer',
+        svgUrl: './svgs/mail.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'bookContainer',
+        svgUrl: './svgs/book.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'eventContainer',
+        svgUrl: './svgs/event.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'mail-blackContainer',
+        svgUrl: './svgs/mail-black.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'numeric2Container',
+        svgUrl: './svgs/numeric2.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'numeric3Container',
+        svgUrl: './svgs/numeric3.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'numeric1Container',
+        svgUrl: './svgs/numeric1.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'consultContainer',
+        svgUrl: './svgs/consult.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'playContainer',
+        svgUrl: './svgs/play.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'formContainer',
+        svgUrl: './svgs/form.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'numeric3-rightContainer',
+        svgUrl: './svgs/numeric3-right.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'contact-blackContainer',
+        svgUrl: './svgs/contact-black.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'businessContainer',
+        svgUrl: './svgs/business.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'dh-logo-whiteContainer',
+        svgUrl: './svgs/dh-logo-white.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'fiftykContainer',
+        svgUrl: './svgs/fiftyk.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'event-blackContainer',
+        svgUrl: './svgs/event-black.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+      {
+        containerId: 'numeric2-rightContainer',
+        svgUrl: './svgs/numeric2-right.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 36 },
+        vivusInstance: null,
+        isAnimated: false
+      },
+    ];
+    initGlobalStaggerObserver(shapes, 0.5, true);
+  });
+</script>
+</body>
+</html>
