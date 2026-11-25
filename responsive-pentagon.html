@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Pentagon Layout</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/dist/vivus.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.4/src/pathformer.js"></script>
+  <script src="js/vivusObserver.js"></script>
+  
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #1a1a1a;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: clamp(24px, 5vw, 36px);
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #aaa;
+      margin-bottom: 40px;
+      font-size: clamp(14px, 2.5vw, 16px);
+    }
+    
+    /* ===== FULLY RESPONSIVE PENTAGON LAYOUT ===== */
+    
+    .pentagon-section {
+      width: 100%;
+      padding: 40px 20px;
+    }
+    
+    .pentagon-wrapper {
+      position: relative;
+      /* Use aspect ratio to maintain square */
+      width: 100%;
+      max-width: 600px; /* Maximum size */
+      margin: 0 auto;
+      /* Create square using padding-bottom trick */
+      padding-bottom: 100%; /* 1:1 aspect ratio */
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 20px;
+    }
+    
+    .pentagon-inner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .pentagon-center {
+      position: absolute;
+      /* Use percentages for center sizing - 40% of parent */
+      width: 40%;
+      height: 40%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      background: rgba(76, 175, 80, 0.05);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .pentagon-item {
+      position: absolute;
+      /* Dynamic width based on container */
+      width: 22%; /* Percentage of pentagon-wrapper */
+      min-width: 90px; /* Minimum size */
+      max-width: 140px; /* Maximum size */
+      text-align: center;
+      font-size: clamp(12px, 1.5vw, 14px);
+      padding: clamp(10px, 2vw, 16px) clamp(8px, 1.5vw, 12px);
+      background: rgba(76, 175, 80, 0.15);
+      border: 2px solid #4CAF50;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      top: 50%;
+      left: 50%;
+      z-index: 5;
+    }
+    
+    .pentagon-item:hover {
+      background: rgba(76, 175, 80, 0.3);
+      transform: translate(-50%, -50%) scale(1.08);
+      box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+    }
+    
+    .pentagon-item.active {
+      background: rgba(76, 175, 80, 0.4);
+      border-color: #66BB6A;
+      box-shadow: 0 0 30px rgba(76, 175, 80, 0.5);
+    }
+    
+    .pentagon-item strong {
+      display: block;
+      font-size: clamp(14px, 1.8vw, 16px);
+      margin-bottom: 4px;
+      color: #4CAF50;
+    }
+    
+    /*
+    KEY TECHNIQUE: Use percentages for radius
+    Instead of fixed 200px, use 40% of container width
+    Calculate positions as percentage of container
+    */
+    
+    /* Item 1: Top (0°) - radius = 40% */
+    .pentagon-item:nth-child(2) {
+      /* y = -40% (up from center) */
+      transform: translate(-50%, -50%) translate(0%, -40%);
+    }
+    
+    /* Item 2: 72° */
+    .pentagon-item:nth-child(3) {
+      /* x = 40% × cos(-18°) ≈ 38% */
+      /* y = 40% × sin(-18°) ≈ -12.4% */
+      transform: translate(-50%, -50%) translate(38%, -12.4%);
+    }
+    
+    /* Item 3: 144° */
+    .pentagon-item:nth-child(4) {
+      /* x = 40% × cos(54°) ≈ 23.5% */
+      /* y = 40% × sin(54°) ≈ 32.4% */
+      transform: translate(-50%, -50%) translate(23.5%, 32.4%);
+    }
+    
+    /* Item 4: 216° */
+    .pentagon-item:nth-child(5) {
+      /* x = 40% × cos(126°) ≈ -23.5% */
+      /* y = 40% × sin(126°) ≈ 32.4% */
+      transform: translate(-50%, -50%) translate(-23.5%, 32.4%);
+    }
+    
+    /* Item 5: 288° */
+    .pentagon-item:nth-child(6) {
+      /* x = 40% × cos(198°) ≈ -38% */
+      /* y = 40% × sin(198°) ≈ -12.4% */
+      transform: translate(-50%, -50%) translate(-38%, -12.4%);
+    }
+    
+    .svgContainer {
+      width: 90%;
+      max-width: 100%;
+    }
+    
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    
+    /* ===== ACCORDION CONTENT ===== */
+    .accordion-content {
+      background: #2a2a2a;
+      border-radius: 12px;
+      padding: 0 20px;
+      max-height: 0;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 0;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    
+    .accordion-content.active {
+      max-height: 1000px;
+      padding: clamp(20px, 4vw, 30px);
+      opacity: 1;
+      border: 2px solid #4CAF50;
+    }
+    
+    .accordion-content h3 {
+      margin-top: 0;
+      color: #4CAF50;
+      font-size: clamp(18px, 4vw, 24px);
+    }
+    
+    .accordion-content p {
+      line-height: 1.8;
+      color: #ccc;
+      font-size: clamp(14px, 2.5vw, 16px);
+    }
+    
+    /* ===== GUIDE SECTION ===== */
+    .guide {
+      background: #2a2a2a;
+      padding: clamp(20px, 4vw, 40px);
+      border-radius: 12px;
+      margin-top: 60px;
+      border-left: 4px solid #4CAF50;
+    }
+    
+    .guide h2 {
+      margin-top: 0;
+      color: #4CAF50;
+      font-size: clamp(20px, 4vw, 28px);
+    }
+    
+    .guide h3 {
+      color: #66BB6A;
+      font-size: clamp(16px, 3vw, 20px);
+      margin-top: 30px;
+    }
+    
+    .guide code {
+      background: #1a1a1a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: clamp(12px, 2vw, 13px);
+      color: #66BB6A;
+      word-break: break-word;
+    }
+    
+    .guide pre {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: clamp(11px, 2vw, 13px);
+      line-height: 1.6;
+    }
+    
+    .guide ul {
+      line-height: 2;
+      font-size: clamp(14px, 2.5vw, 16px);
+    }
+    
+    .formula-box {
+      background: rgba(76, 175, 80, 0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-family: 'Courier New', monospace;
+      font-size: clamp(12px, 2vw, 14px);
+    }
+    
+    /* ===== BREAKPOINT EXAMPLES ===== */
+    .breakpoint-info {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(76, 175, 80, 0.2);
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 12px;
+      border: 1px solid #4CAF50;
+      z-index: 1000;
+    }
+    
+    /* Tablet adjustments */
+    @media (max-width: 768px) {
+      .pentagon-wrapper {
+        max-width: 500px;
+      }
+      
+      .pentagon-item {
+        width: 25%;
+        min-width: 80px;
+      }
+      
+      .breakpoint-info::before {
+        content: "📱 Tablet: ";
+      }
+    }
+    
+    /* Mobile adjustments */
+    @media (max-width: 480px) {
+      .pentagon-wrapper {
+        max-width: 350px;
+      }
+      
+      .pentagon-item {
+        width: 28%;
+        min-width: 70px;
+        font-size: 11px;
+      }
+      
+      .pentagon-center {
+        width: 38%;
+        height: 38%;
+      }
+      
+      .breakpoint-info::before {
+        content: "📱 Mobile: ";
+      }
+    }
+    
+    /* Desktop indicator */
+    @media (min-width: 769px) {
+      .breakpoint-info::before {
+        content: "🖥️ Desktop: ";
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="breakpoint-info">Resize browser to test</div>
+  
+  <div class="container">
+    <h1>📐 Fully Responsive Pentagon Layout</h1>
+    <p class="subtitle">
+      Uses percentages, clamp(), and aspect ratios - works at ANY screen size!
+    </p>
+    
+    <div class="pentagon-section">
+      <div class="pentagon-wrapper">
+        <div class="pentagon-inner">
+          <div class="pentagon-center">
+            <div id="pentagon-svg" class="svgContainer"></div>
+          </div>
+          
+          <div class="pentagon-item" id="0deg" data-rotate-target="pentagon-svg" data-content="content-1">
+            <strong>Service 1</strong>
+            <span>Consulting</span>
+          </div>
+          <div class="pentagon-item" id="72deg" data-rotate-target="pentagon-svg" data-content="content-2">
+            <strong>Service 2</strong>
+            <span>Development</span>
+          </div>
+          <div class="pentagon-item" id="144deg" data-rotate-target="pentagon-svg" data-content="content-3">
+            <strong>Service 3</strong>
+            <span>Design</span>
+          </div>
+          <div class="pentagon-item" id="216deg" data-rotate-target="pentagon-svg" data-content="content-4">
+            <strong>Service 4</strong>
+            <span>Strategy</span>
+          </div>
+          <div class="pentagon-item" id="288deg" data-rotate-target="pentagon-svg" data-content="content-5">
+            <strong>Service 5</strong>
+            <span>Support</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Accordion Content -->
+    <div id="content-1" class="accordion-content">
+      <h3>Consulting Services</h3>
+      <p>Expert consulting that scales with your business. Fully responsive content that adapts to any device.</p>
+    </div>
+    
+    <div id="content-2" class="accordion-content">
+      <h3>Development Solutions</h3>
+      <p>Custom software development with responsive design at its core.</p>
+    </div>
+    
+    <div id="content-3" class="accordion-content">
+      <h3>Design Excellence</h3>
+      <p>Beautiful, responsive designs that work perfectly on all devices.</p>
+    </div>
+    
+    <div id="content-4" class="accordion-content">
+      <h3>Strategic Planning</h3>
+      <p>Comprehensive strategies that adapt to changing market conditions.</p>
+    </div>
+    
+    <div id="content-5" class="accordion-content">
+      <h3>Ongoing Support</h3>
+      <p>Reliable support across all platforms and screen sizes.</p>
+    </div>
+    
+    <!-- Guide -->
+    <div class="guide">
+      <h2>🎯 How This Responsive Layout Works</h2>
+      
+      <h3>1. Square Container with Aspect Ratio</h3>
+      <pre>
+.pentagon-wrapper {
+  width: 100%;              /* Full width of parent */
+  max-width: 600px;         /* Maximum size */
+  padding-bottom: 100%;     /* Creates 1:1 aspect ratio */
+  position: relative;
+}</pre>
+      
+      <p>The <code>padding-bottom: 100%</code> trick creates a perfect square that scales responsively.</p>
+      
+      <h3>2. Percentage-Based Positioning</h3>
+      <div class="formula-box">
+        Instead of: translate(200px, -62px)<br>
+        Use: translate(40%, -12.4%)<br>
+        <br>
+        Calculation: (pixel value / container size) × 100<br>
+        Example: 200px / 500px container = 40%
+      </div>
+      
+      <pre>
+/* Item positions using percentages */
+.pentagon-item:nth-child(2) {
+  /* Top: 0°, radius = 40% */
+  transform: translate(-50%, -50%) translate(0%, -40%);
+}
+
+.pentagon-item:nth-child(3) {
+  /* 72°: radius = 40% */
+  transform: translate(-50%, -50%) translate(38%, -12.4%);
+}
+
+/* etc... */</pre>
+      
+      <h3>3. Fluid Typography with clamp()</h3>
+      <pre>
+font-size: clamp(12px, 2vw, 16px);
+/*              min   ideal  max   */</pre>
+      
+      <p>Text scales smoothly between min and max based on viewport width.</p>
+      
+      <h3>4. Dynamic Item Sizing</h3>
+      <pre>
+.pentagon-item {
+  width: 22%;              /* Scales with container */
+  min-width: 90px;         /* Never too small */
+  max-width: 140px;        /* Never too large */
+}</pre>
+      
+      <h3>5. Breakpoint Adjustments</h3>
+      <pre>
+/* Tablet (≤768px) */
+@media (max-width: 768px) {
+  .pentagon-wrapper {
+    max-width: 500px;
+  }
+  .pentagon-item {
+    width: 25%;            /* Slightly larger % */
+  }
+}
+
+/* Mobile (≤480px) */
+@media (max-width: 480px) {
+  .pentagon-wrapper {
+    max-width: 350px;
+  }
+  .pentagon-item {
+    width: 28%;            /* Even larger % */
+  }
+}</pre>
+      
+      <h3>🔧 Webflow Implementation</h3>
+      
+      <h4>Step 1: Create Responsive Container</h4>
+      <ul>
+        <li>Main wrapper: <code>width: 100%</code>, <code>max-width: 600px</code></li>
+        <li>Add a child div: <code>padding-bottom: 100%</code> (creates square)</li>
+        <li>Add another child: <code>position: absolute</code>, <code>top: 0</code>, fill container</li>
+      </ul>
+      
+      <h4>Step 2: Use Percentage Transforms</h4>
+      <ul>
+        <li>Item 1: <code>translate(-50%, -50%) translate(0%, -40%)</code></li>
+        <li>Item 2: <code>translate(-50%, -50%) translate(38%, -12.4%)</code></li>
+        <li>Item 3: <code>translate(-50%, -50%) translate(23.5%, 32.4%)</code></li>
+        <li>Item 4: <code>translate(-50%, -50%) translate(-23.5%, 32.4%)</code></li>
+        <li>Item 5: <code>translate(-50%, -50%) translate(-38%, -12.4%)</code></li>
+      </ul>
+      
+      <h4>Step 3: Set Breakpoints in Webflow</h4>
+      <ol>
+        <li><strong>Desktop</strong> (base): 600px max-width, items 22% width</li>
+        <li><strong>Tablet</strong> breakpoint: 500px max-width, items 25% width</li>
+        <li><strong>Mobile L</strong>: 400px max-width, items 27% width</li>
+        <li><strong>Mobile P</strong>: 350px max-width, items 28% width</li>
+      </ol>
+      
+      <h4>Step 4: Container Width Strategies</h4>
+      <p><strong>Option A: Max-width approach</strong> (used here)</p>
+      <pre>
+width: 100%;
+max-width: 600px;
+margin: 0 auto;</pre>
+      
+      <p><strong>Option B: Percentage of screen</strong></p>
+      <pre>
+width: 80vw;        /* 80% of viewport */
+max-width: 600px;
+min-width: 300px;</pre>
+      
+      <p><strong>Option C: Container-relative</strong></p>
+      <pre>
+width: 100%;        /* Fills parent container */
+max-width: 100%;    /* Never overflow */</pre>
+      
+      <h3>💡 Key Benefits</h3>
+      <ul>
+        <li>✅ Works at ANY screen size</li>
+        <li>✅ No JavaScript needed for layout</li>
+        <li>✅ Maintains perfect proportions</li>
+        <li>✅ Smooth scaling between breakpoints</li>
+        <li>✅ Easy to adjust in Webflow</li>
+      </ul>
+      
+      <h3>🧮 Calculate Your Own Percentage Positions</h3>
+      <p>Open browser console and run:</p>
+      <pre>
+function calcPercentagePositions(items, radiusPercent) {
+  for (let i = 0; i < items; i++) {
+    const angle = (-90 + (360 / items) * i) * (Math.PI / 180);
+    const x = (radiusPercent * Math.cos(angle)).toFixed(1);
+    const y = (radiusPercent * Math.sin(angle)).toFixed(1);
+    console.log(`Item ${i + 1}: translate(-50%, -50%) translate(${x}%, ${y}%)`);
+  }
+}
+
+// Calculate for 5 items with 40% radius
+calcPercentagePositions(5, 40);</pre>
+      
+      <h3>📱 Testing Checklist</h3>
+      <ul>
+        <li>[ ] Test on actual mobile devices (not just browser resize)</li>
+        <li>[ ] Check landscape orientation</li>
+        <li>[ ] Verify text remains readable at all sizes</li>
+        <li>[ ] Ensure items don't overlap</li>
+        <li>[ ] Test click/tap areas are adequate (min 44×44px)</li>
+        <li>[ ] Verify accordion content is readable</li>
+      </ul>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const shapes = [{
+        containerId: 'pentagon-svg',
+        svgUrl: 'svgs/play.svg',
+        vivusOptions: { type: 'scenario-sync', duration: 20 },
+        vivusInstance: null,
+        isAnimated: false
+      }];
+      
+      initGlobalStaggerObserver(shapes, 0, false);
+      initRotationControls(shapes, '[data-rotate-target]', 500, false);
+      
+      // Accordion
+      const pentagonItems = document.querySelectorAll('.pentagon-item');
+      const accordionContents = document.querySelectorAll('.accordion-content');
+      
+      pentagonItems.forEach((item, index) => {
+        item.addEventListener('click', function() {
+          const wasActive = this.classList.contains('active');
+          
+          pentagonItems.forEach(i => i.classList.remove('active'));
+          accordionContents.forEach(c => c.classList.remove('active'));
+          
+          if (!wasActive) {
+            this.classList.add('active');
+            accordionContents[index].classList.add('active');
+          }
+        });
+      });
+      
+      // Add calculator function to console
+      window.calcPercentagePositions = function(items, radiusPercent) {
+        console.log(`\n🎯 Pentagon positions for ${items} items, ${radiusPercent}% radius:\n`);
+        for (let i = 0; i < items; i++) {
+          const angle = (-90 + (360 / items) * i) * (Math.PI / 180);
+          const x = (radiusPercent * Math.cos(angle)).toFixed(1);
+          const y = (radiusPercent * Math.sin(angle)).toFixed(1);
+          console.log(`Item ${i + 1}: translate(-50%, -50%) translate(${x}%, ${y}%)`);
+        }
+      };
+      
+      console.log('✅ Responsive pentagon ready!');
+      console.log('💡 Try: calcPercentagePositions(5, 40)');
+    });
+  </script>
+</body>
+</html>
